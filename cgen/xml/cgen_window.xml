@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!--
+	Copyright (C) 2016 Ken L.
+	Licensed under the GPL Version 3 license.
+	http://www.gnu.org/licenses/gpl.html
+	This script is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	This script is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+-->
+
+<root>
+	<!-- resources -->
+	<string name="cgen_button_genesis">Generate</string>
+	<string name="cgen_button_launch">CGen</string>
+	<string name="cgen_label_loglevel">Log Level</string>
+	<string name="cgen_label_log1">1</string>
+	<string name="cgen_label_log2">2</string>
+	<string name="cgen_label_log3">3</string>
+	<string name="cgen_label_log4">4</string>
+	<string name="cgen_label_log5">5</string>
+	<string name="cgen_label_logmsg">0</string>
+	<icon name="cgen_tab_input" file="cgen/graphics/tabs/tab_input.png" />
+	<icon name="cgen_tab_log" file="cgen/graphics/tabs/tab_log.png" />
+
+	<!-- templates -->
+	<template name="cgen_button_genesis">
+		<button_text_sm>
+			<anchored position="insidetop"/>
+			<state textres="cgen_button_genesis" />
+
+			<gmvisibleonly />
+				<!-- we pass the text within the input field to our lua script
+					which will parse the contents, we will ideally receive an
+					object representing the content parsed -->
+			<script>
+				function onButtonPress()
+					local creList, creData, err, errmsg; 
+					local cgen_window = Interface.findWindow("cgen_window","cgen");
+					local cgen_node = cgen_window.getDatabaseNode();
+					if (nil ~= cgen_node) then
+						local nodes = cgen_node.getChildren(); 
+						local creData = CreatureGen.genesis(nodes["input"].getValue()); 
+						cgen_node.createChild('lograw','formattedtext'); 
+						local lnode = cgen_node.getChild('lograw');
+						lnode.setValue(creData['log']); 
+						cgen_node.getChild('log').setValue(''); 
+
+						local logLevel = DB.getValue(cgen_node,'loglevel',''); 
+						CreatureGen.dlog('loglevel on creation is ' .. tostring(logLevel)); 
+						wc_CreatureGen.processLog(tonumber(logLevel)); 
+
+						if creData.creature.error == true then
+							return;
+						end
+						local npclist = DB.findNode('npc');
+						Debug.console(tostring(npclist),self); 
+						if npclist then
+							creList = npclist.createChild();
+						end
+						err, errmsg = pcall(CreatureGen.populate,creList,creData); 
+						if not err then
+							CreatureGen.addError('Error when populating character record: ' .. errmsg); 
+							creList.delete(); 
+						else
+							local npcWind = Interface.openWindow("npc",creList);
+							local log = CreatureGen.dumpLog(5); 
+							lnode.setValue(log);
+							wc_CreatureGen.processLog(tonumber(logLevel)); 
+						end
+					end
+
+				end
+			</script>
+		</button_text_sm>
+	</template>
+
+	<template name="cgen_button_launch">
+		<button_text_sm>
+			<anchored position="insidetopright" offset="50,2" width="50"/>
+			<state textres="cgen_button_launch" />
+
+			<gmvisibleonly />
+			<script>
+				function onButtonPress()
+					Interface.openWindow("cgen_window","cgen"); 
+				end
+			</script>
+		</button_text_sm>
+	</template>
+
+	<template name="radio_record_cgen_log_level">
+		<buttongroup_radio>
+			<anchored to="controlframe" height="20">
+				<top offset="8" />
+				<left anchor="center" offset="-200" />
+			</anchored>
+			<parameters>
+				<optionwidth>75</optionwidth>
+				<labelsres>cgen_label_logmsg|cgen_label_log1|cgen_label_log2|cgen_label_log3|cgen_label_log4|cgen_label_log5</labelsres>
+				<values>0|1|2|3|4|5</values>
+			</parameters>
+			<gmeditonly />
+			<script>
+				function onValueChanged()
+					window.onRadioLogChanged(); 
+				end
+			</script>
+		</buttongroup_radio>
+	</template>
+
+	<template name="frame_record_logbar">
+		<genericcontrol>
+			<anchored>
+				<top anchor="bottom" offset="-50" />
+				<left offset="15" />
+				<right offset="-20" />
+				<bottom offset="-15" />
+			</anchored>
+			<frame name="groupbox" />
+			<disabled />
+		</genericcontrol>
+	</template>
+
+
+	<!-- windows -->
+	<windowclass name="npclist">
+		<frame>campaignlistwithtabs</frame>
+		<placement>
+			<size width="300" height="400" />
+		</placement>
+		<sizelimits>
+			<minimum width="300" height="400" />
+			<dynamic />
+		</sizelimits>
+		<nodelete />
+		<sheetdata>
+			<banner_campaign>
+				<icon>title_npcs</icon>
+			</banner_campaign>
+
+			<button_encounter_list />
+			<cgen_button_launch />
+
+			<list_campaign name="list">
+				<datasource>.</datasource>
+				<class>npcsmall</class>
+				<script>
+					function onDrop(x, y, draginfo)
+						if draginfo.isType("shortcut") then
+							return CampaignDataManager.handleDrop("npc", draginfo);
+						end
+					end
+				</script>
+			</list_campaign>
+			<scrollbar_list />
+
+			<anchor_campaign />
+			<button_iedit_campaign />
+			<button_iadd_campaign2>
+				<class>npc</class>
+			</button_iadd_campaign2>
+			<filter_campaign />
+
+			<categories>
+				<targetcontrol>list</targetcontrol>
+			</categories>
+			
+			<resize_campaignlistwithtabs />
+			<close_campaignlist />
+		</sheetdata>
+	</windowclass>
+
+	<windowclass name="cgen_header">
+		<margins control="0,0,0,7" />
+		<sheetdata>
+			<cgen_button_genesis />
+			<anchor_record_header_right />
+		</sheetdata>
+	</windowclass>
+
+
+	<windowclass name="cgen_window">
+		<frame>recordsheet</frame>
+		<script file="cgen/lua/wc_CreatureGen.lua" />
+		<sizelimits>
+			<minimum width="500" height="600" />
+		</sizelimits>
+		<sheetdata>
+			<sub_record_header name="header">
+				<class>cgen_header</class>
+			</sub_record_header>
+			<frame_record_content_tabbed name="contentframe">
+				<anchored>
+					<bottom offset="-65" />
+				</anchored>
+			</frame_record_content_tabbed>
+			<ft_record name="input">
+				<anchored to="contentframe" position="over" />
+				<invisible />
+			</ft_record>
+			<ft_record name="log">
+				<anchored to="contentframe" position="over" />
+				<invisible />
+			</ft_record>
+			<tabs_recordsheet>
+				<tab>
+					<icon>cgen_tab_input</icon>
+					<subwindow>input</subwindow>
+				</tab>
+				<tab>
+					<icon>cgen_tab_log</icon>
+					<subwindow>log</subwindow>
+				</tab>
+			</tabs_recordsheet>
+
+			<scrollbar_record>
+				<target>input</target>
+			</scrollbar_record>
+			<scrollbar_record>
+				<target>log</target>
+			</scrollbar_record>
+
+			<frame_record_logbar name="controlframe" />
+			<radio_record_cgen_log_level name="loglevel" />
+
+			<resize_campaignlistwithtabs/>
+			<close_campaignlist/>
+		</sheetdata>
+	</windowclass>
+</root>

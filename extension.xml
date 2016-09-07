@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!--
+	Copyright (C) 2016 Ken L.
+	Licensed under the GPL Version 3 license.
+	http://www.gnu.org/licenses/gpl.html
+	This script is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	This script is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+-->
+
+<root version="3.0" release="3" icon="logo.png">
+	<announcement text="CreatureGen (GPL v3)" font="emotefont" icon="gCGenExtensionIcon" />
+
+	<properties>
+		<name>Creature Gen</name>
+		<version>1</version>
+		
+		<author>Ken L.</author>
+		<description>PRD and D20PFSRD stat block import tool</description>
+		
+		<ruleset>
+			<name>PFRPG</name>
+		</ruleset>
+	</properties>
+
+	<base>
+		<icon name="gCGenExtensionIcon" file="logo.png" />
+		<includefile source="cgen/xml/cgen_window.xml" />
+		<script name="CreatureGen" file="cgen/lua/CreatureGen.lua"/>
+		<script name="wc_CreatureGen" file="cgen/lua/wc_CreatureGen.lua"/>
+	</base>
+</root>
