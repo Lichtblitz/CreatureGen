@@ -614,6 +614,23 @@ function buildNotesFormat(creData)
 		end
 	end
 
+	-- Tactics
+	if creature.beforecombat or creature.duringcombat or creature.morale or creature.basestats then
+		retval = retval .. '<h>Tactics</h>\n';
+		if creature.beforecombat then
+			retval = retval .. '<p><b>Before Combat: </b>' .. creature.beforecombat .. '</p>\n';
+		end
+		if creature.duringcombat then
+			retval = retval .. '<p><b>During Combat: </b>' .. creature.duringcombat .. '</p>\n';
+		end
+		if creature.morale then
+			retval = retval .. '<p><b>Morale: </b>' .. creature.morale .. '</p>\n';
+		end
+		if creature.basestats then
+			retval = retval .. '<p><b>Base Statistics: </b>' .. creature.basestats .. '</p>\n';
+		end
+	end
+
 	-- statblock
 	retval = retval .. '<h>Statstics Block</h>'
 	retval = retval .. creature.fmt; 
@@ -1233,7 +1250,33 @@ end
 	Parse the tactics fields before/during combat, as well as morale
 ]]--
 function parseTactics(creature,data)
+	local beforecombat, duringcombat, morale;
+	local basestats;
 	local tmp;
+
+	tmp = getLineByName('Before Combat',data,creature.mark_tactics,(nil == creature.mark_statistics and #data or creature.mark_statistics));
+	if tmp then
+		beforecombat = trim(getValueByName('Before Combat',tmp,{}));
+	end
+	creature.beforecombat = beforecombat;
+
+	tmp = getLineByName('During Combat',data,creature.mark_tactics,(nil == creature.mark_statistics and #data or creature.mark_statistics));
+	if tmp then
+		duringcombat = trim(getValueByName('During Combat',tmp,{}));
+	end
+	creature.duringcombat = duringcombat;
+
+	tmp = getLineByName('Morale',data,creature.mark_tactics,(nil == creature.mark_statistics and #data or creature.mark_statistics));
+	if tmp then
+		morale = trim(getValueByName('Morale',tmp,{}));
+	end
+	creature.morale = morale;
+
+	tmp = getLineByName('Base Statistics',data,creature.mark_tactics,(nil == creature.mark_statistics and #data or creature.mark_statistics));
+	if tmp then
+		basestats = trim(getValueByName('Base Statistics',tmp,{}));
+	end
+	creature.basestats = basestats;
 	
 end
 
