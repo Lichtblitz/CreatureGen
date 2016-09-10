@@ -67,6 +67,31 @@ function dlog(str)
 	creLog('GENERAL: ' .. tostring(str),0); 
 end
 
+
+--[[
+	Send all warnings in a single message to chat
+]]--
+function sendWarnings()
+end
+
+--[[
+	Send all errors in a single message to chat
+]]--
+function sendErrors()
+
+end
+
+--[[
+	Send Feedback via chat
+]]--
+function sendFeedback(str)
+	local msg = {};
+	msg.text = str;
+	msg.secret = true; 
+	msg.icon = "gCGenExtensionIcon"; 
+	Comm.addChatMessage(msg); 	
+end
+
 --[[
 	Adds a log entry at the specified level. 
 ]]--
@@ -109,7 +134,7 @@ end
 --[[
 	Callback for the XML given the DB node as well as 
 	the datastructure. Populates the node with the
-	provided data structure. Currently adheres the
+	provided data structure. Currently adheres to the
 	the FG PF ruleset. 
 ]]--
 function populate(creBase,creData)
@@ -221,8 +246,10 @@ function populate(creBase,creData)
 	creList.environment.setValue(creature.environment); 
 	-- organization
 	creList.organization.setValue(creature.organization); 
-
+	-- spells
 	popSpells(creBase,creData); 
+
+	sendFeedback("Import complete for " .. creature.name); 
 
 end
 
@@ -842,6 +869,19 @@ function parsePreliminary(creature,data,ldata)
 		name = name:reverse(); 
 	end
 	creature.name = name; 
+
+	-- normalize name
+	tmp = strsplit(name,'%s'); 
+	dlog(#tmp); 
+	name = ''; 
+	for _,v in pairs(tmp) do
+		v = trim(v);
+		v = v:sub(1,1):upper() .. v:sub(2); 
+		dlog(v); 
+		name = name .. ' ' .. v; 
+	end
+	creature.name = trim(name); 
+
 	-- parse CR
 	cr = data[1]:reverse():match('%d+');
 	if (nil == cr) then
@@ -1359,7 +1399,6 @@ end
 --[[
 	Create a table of name-description pairs and store it to the creature
 ]]--
-
 function parseSpecialAbilities(creature,data,ldata)
 	local termChars = {',',';'}; 
 	local line,abname,abdesc;
