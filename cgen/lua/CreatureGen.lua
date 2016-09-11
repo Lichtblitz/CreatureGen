@@ -871,7 +871,7 @@ function parsePreliminary(creature,data,ldata)
 	creature.name = name; 
 
 	-- normalize name
-	tmp = strsplit(name,'%s'); 
+	tmp = strsplit(name:lower(),'%s'); 
 	dlog(#tmp); 
 	name = ''; 
 	for _,v in pairs(tmp) do
