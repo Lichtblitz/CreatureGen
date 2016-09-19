@@ -31,6 +31,8 @@
 
 	<base>
 		<icon name="gCGenExtensionIcon" file="logo.png" />
+		<icon name="gCGenErrorIcon" file="cgen/graphics/icons/error.png" />
+		<icon name="gCGenWarningIcon" file="cgen/graphics/icons/warning.png" />
 		<includefile source="cgen/xml/cgen_window.xml" />
 		<script name="CreatureGen" file="cgen/lua/CreatureGen.lua"/>
 		<script name="wc_CreatureGen" file="cgen/lua/wc_CreatureGen.lua"/>

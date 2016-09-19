@@ -1,5 +1,8 @@
 --[[
 	Copyright (C) 2016 Ken L.
+	Contribuitors:
+		Chris B (BigD3mon)
+
 	Licensed under the GPL Version 3 license.
 	http://www.gnu.org/licenses/gpl.html
 	This script is free software: you can redistribute it and/or modify
@@ -22,6 +25,11 @@
 local dmesg = {}; 
 local warn = {}; 
 local errs = {}; 
+
+local fields = {};
+fields['feedbackres'] = 'gCGenExtensionIcon'; 
+fields['warningres'] = 'gCGenWarningIcon'; 
+fields['errorres'] = 'gCGenErrorIcon'; 
 
 function test(str)
 	tab = strsplitparen(str,','); 
@@ -72,23 +80,39 @@ end
 	Send all warnings in a single message to chat
 ]]--
 function sendWarnings()
+	local content = ''; 
+	for _,v in pairs(warn) do
+		content = content  .. v .. '\n'; 
+	end
+	sendFeedback(content,fields.warningres); 
 end
 
 --[[
 	Send all errors in a single message to chat
 ]]--
 function sendErrors()
-
+	local content = ''; 
+	for _,v in pairs(errs) do
+		content = content .. v .. '\n'; 
+	end
+	sendFeedback(content,fields.errorres); 
 end
 
 --[[
 	Send Feedback via chat
 ]]--
-function sendFeedback(str)
+function sendFeedback(str,iconres)
 	local msg = {};
+
+	if not str or str == '' then
+		return; 
+	end
+	if not iconres then
+		iconres = fields.feedbackres; 
+	end
 	msg.text = str;
 	msg.secret = true; 
-	msg.icon = "gCGenExtensionIcon"; 
+	msg.icon = iconres; 
 	Comm.addChatMessage(msg); 	
 end
 
@@ -781,6 +805,11 @@ function scan(creature,data)
 		end
 	end
 
+	if creature.error then
+		sendWarnings()
+		sendErrors(); 
+	end
+
 end
 
 --[[
@@ -1288,6 +1317,7 @@ end
 
 --[[
 	Parse the tactics fields before/during combat, as well as morale
+	@author Chris B (BigD3m0n)
 ]]--
 function parseTactics(creature,data)
 	local beforecombat, duringcombat, morale;
