@@ -1,7 +1,7 @@
 --[[
 	Copyright (C) 2016 Ken L.
 	Contribuitors:
-		Chris B (BigD3mon)
+		Chris B. (BigD3mon)
 
 	Licensed under the GPL Version 3 license.
 	http://www.gnu.org/licenses/gpl.html
@@ -806,7 +806,7 @@ function scan(creature,data)
 	end
 
 	if creature.error then
-		sendWarnings()
+		sendWarnings(); 
 		sendErrors(); 
 	end
 
