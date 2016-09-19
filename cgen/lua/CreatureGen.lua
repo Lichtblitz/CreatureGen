@@ -929,9 +929,11 @@ function parsePreliminary(creature,data,ldata)
 	creLog('Init ' .. tostring(creature.init),5); 
 	creLog('Senses ' .. tostring(creature.senses),5);
 
-	-- parse Type, Alignment
-	-- here we'll need to use neighboring data to determine the context.
-	-- the type and alignment data we need reside between 'xp' and 'init'
+	-- parse Type, Alignment, currently on the same line as size
+	-- TODO parse out class levels, for NPCs and a bunch of monster codex entries
+	-- ie: medium goblin bla bla
+	--     Cleric 2
+	-- which are on seperate lines
 	tmp,tmp2 = getLineByName('small',ldata,1,(nil == creature.mark_defense and #data or creature.mark_defense));
 	creature.size = 'small'; 
 	if not tmp then
