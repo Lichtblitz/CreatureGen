@@ -30,15 +30,32 @@ local fields = {};
 fields['feedbackres'] = 'gCGenExtensionIcon'; 
 fields['warningres'] = 'gCGenWarningIcon'; 
 fields['errorres'] = 'gCGenErrorIcon'; 
+fields['spelllib'] = 'PFRPG Full Spells'; 
+fields['spelllibprefix'] = 'spelldesc.'; 
 
-function test(str)
-	tab = strsplitparen(str,','); 
+function test()
+	local modules, minfo;
+	local spellname = 'fireball'; 
 
-	Debug.console(v); 
+	modules = Module.getModules();
 
-	for k,v in pairs(tab) do
-		Debug.console(v); 
+	for k,v in pairs(modules) do
+		dlog(k .. ' ' .. v); 
 	end
+
+	minfo = Module.getModuleInfo('PFRPG Full Spells'); 
+
+	if minfo and minfo['loaded'] then
+		-- verify that this is a module we can use
+		-- do our thing
+		local spellNode = DB.findNode(fields.spelllibprefix .. spellname .. '@' .. fields.spelllib); 
+		if spellNode then
+			dlog(spellNode.getChildren().description.getValue()); 
+		end
+		
+	end
+	
+
 end
 
 -- -- --
@@ -634,9 +651,67 @@ function popSpellDetail(spellNode, spellData)
 	spellNode.createChild('prepared','number');
 	--TODO more spell details pending DB link
 	tmp = spellNode.getChildren(); 
+	-- TODO allow meta name by adding in metas from the spell data
 	tmp.name.setValue(spellData.name); 
 	tmp.prepared.setValue(spellData.prepped); 
+	-- Library link
+	linkSpellLibrary(spellNode,spellData); 
 	creLog('popSpellDetail: populated: ' .. spellData.name,4); 
+end
+
+--[[
+	Given the spell's DB node, and the complementary spell data,
+	look up in our spell library to try and fill in the details.
+]]--
+function linkSpellLibrary(spellNode, spellData)
+	local minfo, xmlSpellName, libNode, tmp, tmpb; 
+
+	xmlSpellName = trim(spellData.propername:gsub('%s','')); 
+	dlog(xmlSpellName); 
+
+	minfo = Module.getModuleInfo('PFRPG Full Spells'); 
+	if minfo and minfo['loaded'] then
+		-- TODO verify that this is a module we can use, currently we just use it
+		-- do our thing
+		local libNode = DB.findNode(fields.spelllibprefix .. xmlSpellName .. '@' .. fields.spelllib); 
+		if libNode then
+			-- populate our spell stuffs
+			spellNode.createChild('castingtime','string'); 
+			spellNode.createChild('components','string'); 
+			spellNode.createChild('cost','number'); 
+			spellNode.createChild('description','string'); 
+			spellNode.createChild('duration','string'); 
+			spellNode.createChild('effect','string'); 
+			spellNode.createChild('level','string'); 
+			spellNode.createChild('range','string'); 
+			spellNode.createChild('save','string'); 
+			spellNode.createChild('school','string'); 
+			spellNode.createChild('shortdescription','string'); 
+			spellNode.createChild('sr','string'); 
+			-- fill our entries
+			tmp = spellNode.getChildren();
+			tmpb = libNode.getChildren(); 
+			tmp.castingtime.setValue(tmpb.castingtime.getValue()); 
+			tmp.components.setValue(tmpb.components.getValue()); 
+			tmp.description.setValue(stripTags(tmpb.description.getValue())); 
+			tmp.duration.setValue(tmpb.duration.getValue()); 
+			tmp.level.setValue(tmpb.level.getValue()); 
+			tmp.range.setValue(tmpb.range.getValue()); 
+			tmp.save.setValue(tmpb.save.getValue()); 
+			tmp.school.setValue(tmpb.school.getValue()); 
+			tmp.sr.setValue(tmpb.sr.getValue()); 
+			-- these are 'optional' datum which may not exist, they're a basket case
+			--tmp.cost.setValue(tmpb.cost.getValue()); 
+			--tmp.effect.setValue(tmpb.effect.getValue()); 
+			--tmp.shortdescription.setValue(tmpb.shortdescription.getValue()); 
+		else
+			addWarn('"' .. spellData.name .. '" cannot be found within spell library "' .. fields.spelllib .. '"'); 
+		end
+		
+	else
+		addWarn('Spell library "' .. fields.spelllib .. '" does not exist or is not loaded.'); 
+	end
+
 end
 
 --[[
@@ -700,6 +775,7 @@ function genesis(data)
 	local retval = {}; 
 
 	scan(creature,data); 
+	--test(); 
 	-- Data bundle
 	retval.creature = creature; 
 	retval.log = dumpLog(5);
@@ -1291,7 +1367,7 @@ end
 function formatSpellName(spellstr)
 	local spell = {};
 	local termChars = {',',';'}; 
-	local dc,nprep,meta;
+	local dc,nprep,meta,proper;
 
 
 	dc = getValueByName('DC',spellstr,termChars);
@@ -1309,12 +1385,43 @@ function formatSpellName(spellstr)
 		nprep = tonumber(nprep); 
 	end
 
+	proper = trim(spellstr:gsub('%(.+%)',''))
+	proper = formatSuperSubScript(proper); 
+	proper = formatMetaMagics(proper); 
+
 	spell['dc'] = dc;
 	spell['prepped'] = nprep;
-	spell['proper_name'] = spellstr; 
+	spell['propername'] = proper; 
 	spell['name'] = trim(spellstr); 
 	creLog('formatSpellName: ' .. spell.name .. ' parsed',4); 
 	return spell; 
+end
+
+--[[
+	Format out super and subscripts often attached to spell names to
+	get the base name. 
+]]--
+function formatSuperSubScript(str)
+	if not str then return; end
+	local retval = str; 
+	local cases = {'1st','2nd','3rd','4th','5th','6th','7th','8th','9th',
+		'UM','TG','UC','APG','MC','D','B'}; 
+	
+	for _,v in pairs(cases) do
+		if v == '' or str:sub(-v:len()) == v then
+			retval = trim(str:gsub(v,'')); 
+		end
+	end
+
+	return retval; 
+end
+
+--[[
+	Format out meta magic prefixes often attached to spell names of
+	high level magic casters, and get the base name. 
+]]--
+function formatMetaMagics(str)
+	return str; 
 end
 
 --[[
@@ -1840,6 +1947,19 @@ function escMagic(str)
 	str = str:gsub('%[)','%%[)'); 
 	str = str:gsub('%^)','%%^)'); 
 	str = str:gsub('%$)','%%$)'); 
+	return str; 
+end
+
+--[[
+	Strip tags (from spell library descriptions)
+]]--
+function stripTags(str)
+	str = str:gsub('<p>',''); 
+	str = str:gsub('</p>','\n'); 
+	str = str:gsub('<b>',''); 
+	str = str:gsub('</b>',''); 
+	str = str:gsub('<i>',''); 
+	str = str:gsub('</i>',''); 
 	return str; 
 end
 
