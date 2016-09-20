@@ -667,7 +667,7 @@ function popSpellDetail(spellNode, spellData)
 	tmp.prepared.setValue(spellData.prepped); 
 	-- Library link
 	linkSpellLibrary(spellNode,spellData); 
-	creLog('popSpellDetail: populated: ' .. spellData.name,4); 
+	creLog('popSpellDetail: populated: ' .. spellData.name,3); 
 end
 
 --[[
@@ -679,7 +679,7 @@ function linkSpellLibrary(spellNode, spellData)
 
 	xmlSpellName = trim(spellData.propername:gsub('%s','')) .. spellData.varient; 
 	xmlSpellName = xmlSpellName:lower(); 
-	dlog(xmlSpellName); 
+	creLog('library XML spell name searched: "' .. xmlSpellName .. '"',4); 
 
 	minfo = Module.getModuleInfo('PFRPG Full Spells'); 
 	if minfo and minfo['loaded'] then
@@ -1406,12 +1406,13 @@ function formatSpellName(spellstr)
 	proper = trim(spellstr:gsub('%(.+%)',''))
 	proper = formatSuperSubScript(proper); 
 	proper,varient = formatSpellStrength(proper); 
-	proper = formatMetaMagics(proper); 
+	proper,meta = formatMetaMagics(proper); 
 	proper = fmtXmlName(proper); 
 
 	spell['dc'] = dc;
 	spell['prepped'] = nprep;
-	spell['varient'] = varient or ''; 
+	spell['varient'] = varient or '';
+	spell['meta'] = meta or '';
 	spell['propername'] = proper; 
 	spell['name'] = trim(spellstr); 
 	creLog('formatSpellName: ' .. spell.name .. ' parsed',4); 
@@ -1459,9 +1460,87 @@ end
 --[[
 	Format out meta magic prefixes often attached to spell names of
 	high level magic casters, and get the base name. 
+	TODO have this be a library link
 ]]--
-function formatMetaMagics(str)
-	return str; 
+function formatMetaMagics(spellName)
+	local retval,retval2;
+	local metas = {
+		'aquatic',
+		'bouncing',
+		'brisk',
+		'burning',
+		'coaxing',
+		'concussive',
+		'consecrated',
+		'contagious',
+		'dazing',
+		'disruptive',
+		'echoing',
+		'eclipsed',
+		'ectoplasmic',
+		'elemental',
+		'empowered',
+		'encouraging',
+		'enlarged',
+		'extended',
+		'fearsome',
+		'flaring',
+		'fleeting',
+		'focused',
+		'furious',
+		'heightened',
+		'intensified',
+		'intuitive',
+		'jinxed',
+		'lingering',
+		'logical',
+		'maximized',
+		'merciful',
+		'persistent',
+		'piercing',
+		'quickened',
+		'reach',
+		'rimed',
+		'scarring',
+		'scouting',
+		'seeking',
+		'selective',
+		'shadow',
+		'sickening',
+		'silent',
+		'snuffing',
+		'solar',
+		'solid',
+		'stilled',
+		'studied',
+		'stylized',
+		'tenacious',
+		'thanatopic',
+		'tenebrous',
+		'threatening',
+		'threnodic',
+		'thundering',
+		'toppling',
+		'toxic',
+		'traumatic',
+		'tricky',
+		'umbral',
+		'vast',
+		'verdant',
+		'widened',
+		'yai-mimiced'
+	}
+
+	retval = spellName; 
+	for _,v in pairs(metas) do
+		if spellName:find(v) then
+			retval = trim(retval:gsub(v,'')); 	
+			retval2 = v; 
+			break; 
+		end
+	end
+
+	return retval,retval2; 
 end
 
 --[[
@@ -1960,6 +2039,7 @@ end
 	Remove magic characters
 ]]--
 function rmMagic(str)
+	if not str then return; end
 	str = str:gsub('%(',' '); 
 	str = str:gsub('%)',' '); 
 	str = str:gsub('%.',' '); 
@@ -1977,6 +2057,7 @@ end
 	Escape magic characters
 ]]--
 function escMagic(str)
+	if not str then return; end
 	str = str:gsub('%(','%%('); 
 	str = str:gsub('%)','%%)'); 
 	str = str:gsub('%.','%%.'); 
@@ -1994,6 +2075,7 @@ end
 	Strip tags (from spell library descriptions)
 ]]--
 function stripTags(str)
+	if not str then return; end
 	str = str:gsub('<p>',''); 
 	str = str:gsub('</p>','\n'); 
 	str = str:gsub('<b>',''); 
@@ -2003,9 +2085,14 @@ function stripTags(str)
 	return str; 
 end
 
+--[[
+	Formats a string into a legal xml name
+]]--
 function fmtXmlName(str)
+	if not str then return; end
 	str = str:gsub('\'','');
 	str = str:gsub('%s','');
+	str = str:gsub('/','');
 	str = str:lower(); 
 	return str; 
 end
