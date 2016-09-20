@@ -66,6 +66,8 @@
 						err, errmsg = pcall(CreatureGen.populate,creList,creData); 
 						if not err then
 							CreatureGen.addError('Error when populating character record: ' .. errmsg); 
+							CreatureGen.sendErrors(); 
+							CreatureGen.sendWarnings(); 
 							creList.delete(); 
 						else
 							local npcWind = Interface.openWindow("npc",creList);
@@ -74,7 +76,6 @@
 							wc_CreatureGen.processLog(tonumber(logLevel)); 
 						end
 					end
-
 				end
 			</script>
 		</button_text_sm>

@@ -99,7 +99,10 @@ end
 function sendWarnings()
 	local content = ''; 
 	for _,v in pairs(warn) do
-		content = content  .. v .. '\n'; 
+		content = content  .. v .. '\n\n'; 
+	end
+	if content:len() > 1 then
+		content = content:sub(1,-3); 
 	end
 	sendFeedback(content,fields.warningres); 
 end
@@ -110,7 +113,10 @@ end
 function sendErrors()
 	local content = ''; 
 	for _,v in pairs(errs) do
-		content = content .. v .. '\n'; 
+		content = content .. v .. '\n\n'; 
+	end
+	if content:len() > 1 then
+		content = content:sub(1,-3); 
 	end
 	sendFeedback(content,fields.errorres); 
 end
@@ -290,8 +296,13 @@ function populate(creBase,creData)
 	-- spells
 	popSpells(creBase,creData); 
 
-	sendFeedback("Import complete for " .. creature.name); 
-
+	-- warnings if any
+	if next(warn) ~= nil then
+		addWarn("Import complete for " .. creature.name); 
+		sendWarnings(); 
+	else
+		sendFeedback("Import complete for " .. creature.name); 
+	end
 end
 
 --[[
@@ -666,7 +677,8 @@ end
 function linkSpellLibrary(spellNode, spellData)
 	local minfo, xmlSpellName, libNode, tmp, tmpb; 
 
-	xmlSpellName = trim(spellData.propername:gsub('%s','')); 
+	xmlSpellName = trim(spellData.propername:gsub('%s','')) .. spellData.varient; 
+	xmlSpellName = xmlSpellName:lower(); 
 	dlog(xmlSpellName); 
 
 	minfo = Module.getModuleInfo('PFRPG Full Spells'); 
@@ -701,9 +713,15 @@ function linkSpellLibrary(spellNode, spellData)
 			tmp.school.setValue(tmpb.school.getValue()); 
 			tmp.sr.setValue(tmpb.sr.getValue()); 
 			-- these are 'optional' datum which may not exist, they're a basket case
-			--tmp.cost.setValue(tmpb.cost.getValue()); 
-			--tmp.effect.setValue(tmpb.effect.getValue()); 
-			--tmp.shortdescription.setValue(tmpb.shortdescription.getValue()); 
+			if tmpb.cost then
+				tmp.cost.setValue(tmpb.cost.getValue()); 
+			end
+			if tmpb.effect then
+				tmp.effect.setValue(tmpb.effect.getValue()); 
+			end
+			if tmpb.shortdescription then
+				tmp.shortdescription.setValue(tmpb.shortdescription.getValue()); 
+			end
 		else
 			addWarn('"' .. spellData.name .. '" cannot be found within spell library "' .. fields.spelllib .. '"'); 
 		end
@@ -1367,7 +1385,7 @@ end
 function formatSpellName(spellstr)
 	local spell = {};
 	local termChars = {',',';'}; 
-	local dc,nprep,meta,proper;
+	local dc,nprep,meta,proper,varient;
 
 
 	dc = getValueByName('DC',spellstr,termChars);
@@ -1387,10 +1405,13 @@ function formatSpellName(spellstr)
 
 	proper = trim(spellstr:gsub('%(.+%)',''))
 	proper = formatSuperSubScript(proper); 
+	proper,varient = formatSpellStrength(proper); 
 	proper = formatMetaMagics(proper); 
+	proper = fmtXmlName(proper); 
 
 	spell['dc'] = dc;
 	spell['prepped'] = nprep;
+	spell['varient'] = varient or ''; 
 	spell['propername'] = proper; 
 	spell['name'] = trim(spellstr); 
 	creLog('formatSpellName: ' .. spell.name .. ' parsed',4); 
@@ -1414,6 +1435,25 @@ function formatSuperSubScript(str)
 	end
 
 	return retval; 
+end
+
+--[[
+	Deal with spell strength varients
+]]--
+function formatSpellStrength(spellName)
+	if not spellName then return; end
+	local retval = spellName;
+	local retval2; 
+	local strengths = {'communal','mass','lesser','greater','IX','VIII','VII','VI','IV','V','III','II','I'};
+
+	for _,v in pairs(strengths) do
+		if spellName:find(v) then
+			retval = trim(retval:gsub(v,'')); 	
+			retval2 = v; 
+			break; 
+		end
+	end
+	return retval, retval2; 
 end
 
 --[[
@@ -1960,6 +2000,13 @@ function stripTags(str)
 	str = str:gsub('</b>',''); 
 	str = str:gsub('<i>',''); 
 	str = str:gsub('</i>',''); 
+	return str; 
+end
+
+function fmtXmlName(str)
+	str = str:gsub('\'','');
+	str = str:gsub('%s','');
+	str = str:lower(); 
 	return str; 
 end
 
