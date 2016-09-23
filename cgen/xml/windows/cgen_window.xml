@@ -15,19 +15,6 @@
 -->
 
 <root>
-	<!-- resources -->
-	<string name="cgen_button_genesis">Generate</string>
-	<string name="cgen_button_launch">CGen</string>
-	<string name="cgen_label_loglevel">Log Level</string>
-	<string name="cgen_label_log1">1</string>
-	<string name="cgen_label_log2">2</string>
-	<string name="cgen_label_log3">3</string>
-	<string name="cgen_label_log4">4</string>
-	<string name="cgen_label_log5">5</string>
-	<string name="cgen_label_logmsg">0</string>
-	<icon name="cgen_tab_input" file="cgen/graphics/tabs/tab_input.png" />
-	<icon name="cgen_tab_log" file="cgen/graphics/tabs/tab_log.png" />
-
 	<!-- templates -->
 	<template name="cgen_button_genesis">
 		<button_text_sm>

@@ -995,12 +995,10 @@ function parsePreliminary(creature,data,ldata)
 
 	-- normalize name
 	tmp = strsplit(name:lower(),'%s'); 
-	dlog(#tmp); 
 	name = ''; 
 	for _,v in pairs(tmp) do
 		v = trim(v);
 		v = v:sub(1,1):upper() .. v:sub(2); 
-		dlog(v); 
 		name = name .. ' ' .. v; 
 	end
 	creature.name = trim(name); 
