@@ -30,8 +30,8 @@ local fields = {};
 fields['feedbackres'] = 'gCGenExtensionIcon'; 
 fields['warningres'] = 'gCGenWarningIcon'; 
 fields['errorres'] = 'gCGenErrorIcon'; 
-fields['spelllib'] = 'PFRPG Full Spells'; 
-fields['spelllibprefix'] = 'spelldesc.'; 
+fields['spelllib'] = 'PFRPG Archive Spells'; 
+fields['spelllibprefix'] = 'reference.spells.'; 
 
 function test()
 	local modules, minfo;
@@ -1461,6 +1461,8 @@ end
 	Format out meta magic prefixes often attached to spell names of
 	high level magic casters, and get the base name. 
 	TODO have this be a library link
+	TODO there exists the case of multiple meta magics which is currently unhandled, we
+	should ideally return a table as our meta field.
 ]]--
 function formatMetaMagics(spellName)
 	local retval,retval2;
