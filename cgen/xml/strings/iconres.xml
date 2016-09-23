@@ -16,7 +16,7 @@
 
 <root>
 	<!-- resources -->
-	<icon name="gCGenExtensionIcon" file="logo.png" />
+	<icon name="gCGenExtensionIcon" file="cgen/graphics/icons/logo.png" />
 	<icon name="gCGenErrorIcon" file="cgen/graphics/icons/error.png" />
 	<icon name="gCGenWarningIcon" file="cgen/graphics/icons/warning.png" />
 	<icon name="cgen_tab_input" file="cgen/graphics/tabs/tab_input.png" />
