@@ -1056,9 +1056,11 @@ function parsePreliminary(creature,data,ldata)
 
 	-- parse EXP
 	exp = getLineByName('XP',data,2); 
-	exp = exp:gsub(',',''); 
-	exp = exp:match('%d+'); 
-	exp = tonumber(exp); 
+	if exp then
+		exp = exp:gsub(',',''); 
+		exp = exp:match('%d+'); 
+		exp = tonumber(exp); 
+	end
 	creature.exp = exp; 
 end
 
