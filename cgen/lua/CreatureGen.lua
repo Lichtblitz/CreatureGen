@@ -16,9 +16,6 @@
 	GNU General Public License for more details.
 ]]--
 
-
---TODO add support for comm library feedback through chat
-
 --[[
 	LUA is a pain in the posterior
 ]]--
@@ -43,9 +40,24 @@ function test()
 		dlog(k .. ' ' .. v); 
 	end
 
-	minfo = Module.getModuleInfo('PFRPG Full Spells'); 
+	minfo = Module.getModuleInfo(fields.spelllib); 
+	if minfo then
+		dlog('name: ' .. tostring(minfo['name'])); 
+		dlog('category: ' .. tostring(minfo['category'])); 
+		dlog('author: ' .. tostring(minfo['author'])); 
+		dlog('size: ' .. tostring(minfo['size'])); 
+		dlog('installed: ' .. tostring(minfo['installed'])); 
+		dlog('loaded: ' .. tostring(minfo['loaded'])); 
+		dlog('loading: ' .. tostring(minfo['loading'])); 
+		dlog('loadpending: ' .. tostring(minfo['loadpending'])); 
+		dlog('permission: ' .. tostring(minfo['permission'])); 
+		dlog('intact: ' .. tostring(minfo['intact'])); 
+		dlog('replaces: ' .. tostring(minfo['replaces'])); 
+		dlog('hastokens: ' .. tostring(minfo['hastokens'])); 
+		dlog('hasdata: ' .. tostring(minfo['hasdata'])); 
+	end
 
-	if minfo and minfo['loaded'] then
+	if minfo and minfo['loaded'] == true then
 		-- verify that this is a module we can use
 		-- do our thing
 		local spellNode = DB.findNode(fields.spelllibprefix .. spellname .. '@' .. fields.spelllib); 
@@ -293,6 +305,8 @@ function populate(creBase,creData)
 	creList.environment.setValue(creature.environment); 
 	-- organization
 	creList.organization.setValue(creature.organization); 
+	-- check library link
+	checkLib(); 
 	-- spells
 	popSpells(creBase,creData); 
 
@@ -302,6 +316,22 @@ function populate(creBase,creData)
 		sendWarnings(); 
 	else
 		sendFeedback("Import complete for " .. creature.name); 
+	end
+end
+
+--[[
+	Checks if our sync'd library is loaded. If it is not, warn the user.
+]]--
+function checkLib()
+	local modules, minfo;
+
+	modules = Module.getModules();
+	minfo = Module.getModuleInfo(fields.spelllib); 
+
+	if minfo and minfo['loaded'] == true then
+		dlog('Spell library: "' .. fields.spelllib .. '" detected as loaded and available'); 
+	else
+		addWarn('Spell library: "' .. fields.spelllib .. '" is not loaded or not available, spells will not be populated'); 
 	end
 end
 
@@ -681,8 +711,8 @@ function linkSpellLibrary(spellNode, spellData)
 	xmlSpellName = xmlSpellName:lower(); 
 	creLog('library XML spell name searched: "' .. xmlSpellName .. '"',4); 
 
-	minfo = Module.getModuleInfo('PFRPG Full Spells'); 
-	if minfo and minfo['loaded'] then
+	minfo = Module.getModuleInfo(fields.spelllib); 
+	if minfo and minfo['loaded'] == true then
 		-- TODO verify that this is a module we can use, currently we just use it
 		-- do our thing
 		local libNode = DB.findNode(fields.spelllibprefix .. xmlSpellName .. '@' .. fields.spelllib); 
@@ -725,9 +755,6 @@ function linkSpellLibrary(spellNode, spellData)
 		else
 			addWarn('"' .. spellData.name .. '" cannot be found within spell library "' .. fields.spelllib .. '"'); 
 		end
-		
-	else
-		addWarn('Spell library "' .. fields.spelllib .. '" does not exist or is not loaded.'); 
 	end
 
 end
@@ -793,7 +820,7 @@ function genesis(data)
 	local retval = {}; 
 
 	scan(creature,data); 
-	--test(); 
+	test(); 
 	-- Data bundle
 	retval.creature = creature; 
 	retval.log = dumpLog(5);
