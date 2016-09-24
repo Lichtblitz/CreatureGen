@@ -30,46 +30,6 @@ fields['errorres'] = 'gCGenErrorIcon';
 fields['spelllib'] = 'PFRPG Archive Spells'; 
 fields['spelllibprefix'] = 'reference.spells.'; 
 
-function test()
-	local modules, minfo;
-	local spellname = 'fireball'; 
-
-	modules = Module.getModules();
-
-	for k,v in pairs(modules) do
-		dlog(k .. ' ' .. v); 
-	end
-
-	minfo = Module.getModuleInfo(fields.spelllib); 
-	if minfo then
-		dlog('name: ' .. tostring(minfo['name'])); 
-		dlog('category: ' .. tostring(minfo['category'])); 
-		dlog('author: ' .. tostring(minfo['author'])); 
-		dlog('size: ' .. tostring(minfo['size'])); 
-		dlog('installed: ' .. tostring(minfo['installed'])); 
-		dlog('loaded: ' .. tostring(minfo['loaded'])); 
-		dlog('loading: ' .. tostring(minfo['loading'])); 
-		dlog('loadpending: ' .. tostring(minfo['loadpending'])); 
-		dlog('permission: ' .. tostring(minfo['permission'])); 
-		dlog('intact: ' .. tostring(minfo['intact'])); 
-		dlog('replaces: ' .. tostring(minfo['replaces'])); 
-		dlog('hastokens: ' .. tostring(minfo['hastokens'])); 
-		dlog('hasdata: ' .. tostring(minfo['hasdata'])); 
-	end
-
-	if minfo and minfo['loaded'] == true then
-		-- verify that this is a module we can use
-		-- do our thing
-		local spellNode = DB.findNode(fields.spelllibprefix .. spellname .. '@' .. fields.spelllib); 
-		if spellNode then
-			dlog(spellNode.getChildren().description.getValue()); 
-		end
-		
-	end
-	
-
-end
-
 -- -- --
 --
 --
@@ -820,7 +780,7 @@ function genesis(data)
 	local retval = {}; 
 
 	scan(creature,data); 
-	test(); 
+	--test(); 
 	-- Data bundle
 	retval.creature = creature; 
 	retval.log = dumpLog(5);
