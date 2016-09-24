@@ -1391,13 +1391,13 @@ function formatSpellName(spellstr)
 	proper = trim(spellstr:gsub('%(.+%)',''))
 	proper = formatSuperSubScript(proper); 
 	proper,varient = formatSpellStrength(proper); 
-	proper,meta = formatMetaMagics(proper); 
+	--proper,meta = formatMetaMagics(proper); 
 	proper = fmtXmlName(proper); 
 
 	spell['dc'] = dc;
 	spell['prepped'] = nprep;
 	spell['varient'] = varient or '';
-	spell['meta'] = meta or '';
+	--spell['meta'] = meta or '';
 	spell['propername'] = proper; 
 	spell['name'] = trim(spellstr); 
 	creLog('formatSpellName: ' .. spell.name .. ' parsed',4); 
