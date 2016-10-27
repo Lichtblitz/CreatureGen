@@ -1,2 +1,5 @@
 Chris B. (BigD3m0n) (Kuthulu)
 	- CreatureGen.lua : parseTactics()
+
+Keven Simmons
+	- CreatureGen.lua : stripString() [BUG]
