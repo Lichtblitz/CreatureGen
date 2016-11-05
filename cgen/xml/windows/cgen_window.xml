@@ -118,6 +118,9 @@
 
 	<!-- windows -->
 
+<!--
+	Hack into master index. making this context sensitive would require script injection
+-->
 	<windowclass name="masterindex">
 		<frame>referencelist</frame>
 		<placement>
@@ -178,54 +181,6 @@
 			<resize_referencelist />
 			<helper_masterindex />
 			<close_referencelist />
-		</sheetdata>
-	</windowclass>
-
-
-	<windowclass name="npclist">
-		<frame>campaignlistwithtabs</frame>
-		<placement>
-			<size width="300" height="400" />
-		</placement>
-		<sizelimits>
-			<minimum width="300" height="400" />
-			<dynamic />
-		</sizelimits>
-		<nodelete />
-		<sheetdata>
-			<banner_campaign>
-				<icon>title_npcs</icon>
-			</banner_campaign>
-
-			<button_encounter_list />
-			<cgen_button_launch />
-
-			<list_campaign name="list">
-				<datasource>.</datasource>
-				<class>npcsmall</class>
-				<script>
-					function onDrop(x, y, draginfo)
-						if draginfo.isType("shortcut") then
-							return CampaignDataManager.handleDrop("npc", draginfo);
-						end
-					end
-				</script>
-			</list_campaign>
-			<scrollbar_list />
-
-			<anchor_campaign />
-			<button_iedit_campaign />
-			<button_iadd_campaign2>
-				<class>npc</class>
-			</button_iadd_campaign2>
-			<filter_campaign />
-
-			<categories>
-				<targetcontrol>list</targetcontrol>
-			</categories>
-			
-			<resize_campaignlistwithtabs />
-			<close_campaignlist />
 		</sheetdata>
 	</windowclass>
 
