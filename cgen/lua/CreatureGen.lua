@@ -161,17 +161,13 @@ function populate(creBase,creData)
 	local creList = creBase.getChildren(); 
 	-- creData -> log, creature -> creature_data
 	-- (str name, ln databasenode)
-	-- initial population has name
-	-- creList.name = creData.name; 
-	--for k,v in pairs(creList) do
-	--	Debug.console('k: ' .. k .. ' v: ' .. type(v)); 
-	--end
+	-- initial population has name (X this is no longer true in 3.2)
 	-- <<<<<<<<<< CONFIRM TO CHARACTER SHEET HERE
 	-- creList.name = creature.name; 
 	-- TODO figure out the CRUD of an NPC entry
 	creBase.setPublic(false); 
-	creList.name.setValue(creature.name); 
-
+	-- name
+	creBase.createChild('name','string'); 
 	-- formatted block
 	creBase.createChild('text','formattedtext'); 
 	-- core
@@ -220,6 +216,8 @@ function populate(creBase,creData)
 
 
 	creList = creBase.getChildren(); 
+	-- name
+	creList.name.setValue(creature.name); 
 	-- formatted block
 	creList.text.setValue(buildNotesFormat(creData)); 
 	-- core
