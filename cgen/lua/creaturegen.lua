@@ -298,7 +298,7 @@ end
 ]]--
 function popSpells(creBase, creData)
 	local creature = creData.creature; 
-	local creList,spellList,casterNode,spellTypeNode,spellTypeBaseNode,tmp; 
+	local creList,spellList,casterNode,spellTypeNode,spellTypeBaseNode,tmp,rc; 
 	local casterType,spellType;
 	local cnt = 1; 
 
@@ -312,6 +312,10 @@ function popSpells(creBase, creData)
 				casterNode = spellList.createChild('id%-' .. string.format('%05d',cnt));
 				casterNode.createChild('label','string'); 
 				casterNode.getChildren().label.setValue(casterType); 
+				if casterType:match('Spells Known') then
+					casterNode.createChild('castertype','string'); 
+					casterNode.getChildren().castertype.setValue('spontaneous'); 
+				end
 				-- concentration + caster level checks
 				casterNode.createChild('cc').createChild('misc','number').setValue(creature.spells[casterType].concentration);
 				casterNode.createChild('cl','number').setValue(creature.spells[casterType].casterlevel);
@@ -347,6 +351,16 @@ function popSpells(creBase, creData)
 						tmp = tmp.getChildren();
 						tmp.level.setValue(1);
 						tmp.maxprepared.setValue(#creature.spells[casterType][spellType]); 
+
+						if casterType:match('Spells Known') then
+							rc = spellType:find('%('); 
+							rc = spellType:sub(rc);
+							rc = getBonusNumber(rc); 
+							if rc then
+								casterNode.getChildren().availablelevel1.setValue(rc); 
+							end
+						end
+
 						tmp.totalcast.setValue(0);
 						tmp.totalprepared.setValue(#creature.spells[casterType][spellType]); 
 						popSpellTypeList(creData,spellTypeNode,casterType,spellType); 
@@ -363,6 +377,16 @@ function popSpells(creBase, creData)
 						tmp = tmp.getChildren();
 						tmp.level.setValue(2);
 						tmp.maxprepared.setValue(#creature.spells[casterType][spellType]); 
+
+						if casterType:match('Spells Known') then
+							rc = spellType:find('%('); 
+							rc = spellType:sub(rc);
+							rc = getBonusNumber(rc); 
+							if rc then
+								casterNode.getChildren().availablelevel2.setValue(rc); 
+							end
+						end
+
 						tmp.totalcast.setValue(0);
 						tmp.totalprepared.setValue(#creature.spells[casterType][spellType]); 
 						popSpellTypeList(creData,spellTypeNode,casterType,spellType); 
@@ -379,6 +403,16 @@ function popSpells(creBase, creData)
 						tmp = tmp.getChildren();
 						tmp.level.setValue(3);
 						tmp.maxprepared.setValue(#creature.spells[casterType][spellType]); 
+
+						if casterType:match('Spells Known') then
+							rc = spellType:find('%('); 
+							rc = spellType:sub(rc);
+							rc = getBonusNumber(rc); 
+							if rc then
+								casterNode.getChildren().availablelevel3.setValue(rc); 
+							end
+						end
+
 						tmp.totalcast.setValue(0);
 						tmp.totalprepared.setValue(#creature.spells[casterType][spellType]); 
 						popSpellTypeList(creData,spellTypeNode,casterType,spellType); 
@@ -395,6 +429,17 @@ function popSpells(creBase, creData)
 						tmp = tmp.getChildren();
 						tmp.level.setValue(4);
 						tmp.maxprepared.setValue(#creature.spells[casterType][spellType]); 
+
+						if casterType:match('Spells Known') then
+							rc = spellType:find('%('); 
+							rc = spellType:sub(rc);
+							rc = getBonusNumber(rc); 
+							if rc then
+								casterNode.getChildren().availablelevel4.setValue(rc); 
+							end
+						end
+
+
 						tmp.totalcast.setValue(0);
 						tmp.totalprepared.setValue(#creature.spells[casterType][spellType]); 
 						popSpellTypeList(creData,spellTypeNode,casterType,spellType); 
@@ -411,6 +456,17 @@ function popSpells(creBase, creData)
 						tmp = tmp.getChildren();
 						tmp.level.setValue(5);
 						tmp.maxprepared.setValue(#creature.spells[casterType][spellType]); 
+
+						if casterType:match('Spells Known') then
+							rc = spellType:find('%('); 
+							rc = spellType:sub(rc);
+							rc = getBonusNumber(rc); 
+							if rc then
+								casterNode.getChildren().availablelevel5.setValue(rc); 
+							end
+						end
+
+
 						tmp.totalcast.setValue(0);
 						tmp.totalprepared.setValue(#creature.spells[casterType][spellType]); 
 						popSpellTypeList(creData,spellTypeNode,casterType,spellType); 
@@ -427,6 +483,17 @@ function popSpells(creBase, creData)
 						tmp = tmp.getChildren();
 						tmp.level.setValue(6);
 						tmp.maxprepared.setValue(#creature.spells[casterType][spellType]); 
+
+						if casterType:match('Spells Known') then
+							rc = spellType:find('%('); 
+							rc = spellType:sub(rc);
+							rc = getBonusNumber(rc); 
+							if rc then
+								casterNode.getChildren().availablelevel6.setValue(rc); 
+							end
+						end
+
+
 						tmp.totalcast.setValue(0);
 						tmp.totalprepared.setValue(#creature.spells[casterType][spellType]); 
 						popSpellTypeList(creData,spellTypeNode,casterType,spellType); 
@@ -443,6 +510,17 @@ function popSpells(creBase, creData)
 						tmp = tmp.getChildren();
 						tmp.level.setValue(7);
 						tmp.maxprepared.setValue(#creature.spells[casterType][spellType]); 
+
+						if casterType:match('Spells Known') then
+							rc = spellType:find('%('); 
+							rc = spellType:sub(rc);
+							rc = getBonusNumber(rc); 
+							if tmp.maxprepared.getValue() then
+								casterNode.getChildren().availablelevel7.setValue(rc); 
+							end
+						end
+
+
 						tmp.totalcast.setValue(0);
 						tmp.totalprepared.setValue(#creature.spells[casterType][spellType]); 
 						popSpellTypeList(creData,spellTypeNode,casterType,spellType); 
@@ -459,6 +537,16 @@ function popSpells(creBase, creData)
 						tmp = tmp.getChildren();
 						tmp.level.setValue(8);
 						tmp.maxprepared.setValue(#creature.spells[casterType][spellType]); 
+
+						if casterType:match('Spells Known') then
+							rc = spellType:find('%('); 
+							rc = spellType:sub(rc);
+							rc = getBonusNumber(rc); 
+							if tmp.maxprepared.getValue() then
+								casterNode.getChildren().availablelevel8.setValue(rc); 
+							end
+						end
+
 						tmp.totalcast.setValue(0);
 						tmp.totalprepared.setValue(#creature.spells[casterType][spellType]); 
 						popSpellTypeList(creData,spellTypeNode,casterType,spellType); 
@@ -475,6 +563,16 @@ function popSpells(creBase, creData)
 						tmp = tmp.getChildren();
 						tmp.level.setValue(9);
 						tmp.maxprepared.setValue(#creature.spells[casterType][spellType]); 
+
+						if casterType:match('Spells Known') then
+							rc = spellType:find('%('); 
+							rc = spellType:sub(rc);
+							rc = getBonusNumber(rc); 
+							if tmp.maxprepared.getValue() then
+								casterNode.getChildren().availablelevel9.setValue(rc); 
+							end
+						end
+
 						tmp.totalcast.setValue(0);
 						tmp.totalprepared.setValue(#creature.spells[casterType][spellType]); 
 						popSpellTypeList(creData,spellTypeNode,casterType,spellType); 
@@ -495,7 +593,7 @@ end
 ]]--
 function popSpellLikeAb(creBase, creData, idcarry)
 	local creature = creData.creature; 
-	local creList,spellList,casterNode,spellTypeNode,spellTypeBaseNode,alloLevel,tmp; 
+	local creList,spellList,casterNode,spellTypeNode,spellTypeBaseNode,alloLevel,tmp,rc; 
 	local casterType,spellType;
 	local cnt = idcarry; 
 	local avail; 
@@ -1412,7 +1510,7 @@ function formatSuperSubScript(str)
 	if not str then return; end
 	local retval = str; 
 	local cases = {'1st','2nd','3rd','4th','5th','6th','7th','8th','9th',
-		'UM','TG','UC','APG','MC','D','B'}; 
+		'UM','TG','UC','APG','MC','D','B','HA','*'}; 
 	
 	for _,v in pairs(cases) do
 		if v == '' or str:sub(-v:len()) == v then
