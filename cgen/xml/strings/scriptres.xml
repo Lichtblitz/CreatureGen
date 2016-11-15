@@ -16,8 +16,8 @@
 
 <root>
 	<!-- resources -->
-	<script name="CreatureGen" file="cgen/lua/CreatureGen.lua"/>
-	<script name="wc_CreatureGen" file="cgen/lua/wc_CreatureGen.lua"/>
-	<script name="wc_CreatureGen" file="cgen/lua/init.lua"/>
+	<script name="CreatureGen" file="cgen/lua/creaturegen.lua"/>
+	<script name="CreatureGenWindow" file="cgen/lua/creaturegenwindow.lua"/>
+	<script name="Init" file="cgen/lua/init.lua"/>
 </root>
 
