@@ -2001,6 +2001,8 @@ function stripString(data)
 	-- UTF-8 singles
 	data = data:gsub('&#34;','"'); 
 	data = data:gsub('&#151;','--');
+	data = data:gsub('&#150;','-');
+	data = data:gsub('&#215;','x'); 
 
 	-- UTF-8 codes
 	data = data:gsub('\\u2013','-'); 

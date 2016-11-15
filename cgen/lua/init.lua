@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="iso-8859-1"?>
-<!--
+--[[
 	Copyright (C) 2016 Ken L.
+
 	Licensed under the GPL Version 3 license.
 	http://www.gnu.org/licenses/gpl.html
 	This script is free software: you can redistribute it and/or modify
@@ -12,12 +12,9 @@
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 	GNU General Public License for more details.
--->
+]]--
 
-<root>
-	<!-- resources -->
-	<script name="CreatureGen" file="cgen/lua/CreatureGen.lua"/>
-	<script name="wc_CreatureGen" file="cgen/lua/wc_CreatureGen.lua"/>
-	<script name="wc_CreatureGen" file="cgen/lua/init.lua"/>
-</root>
+function onInit()
+	LibraryData.addIndexButton("npc","cgen_button_launch"); 
+end
 

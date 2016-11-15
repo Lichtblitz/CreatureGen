@@ -119,8 +119,6 @@
 	<!-- windows -->
 
 <!--
-	Hack into master index. making this context sensitive would require script injection
--->
 	<windowclass name="masterindex">
 		<frame>referencelist</frame>
 		<placement>
@@ -135,9 +133,9 @@
 		<nodelete />
 		<script file="campaign/scripts/masterindex_window.lua" />
 		<sheetdata>
+			<cgen_button_launch />
 			<windowtitlebar name="reftitle" />
 			<anchor_reftitle name="contentanchor" />
-			<cgen_button_launch />
 
 			<masterindex_anchor_bottom name="bottomanchor" />
 
@@ -183,6 +181,7 @@
 			<close_referencelist />
 		</sheetdata>
 	</windowclass>
+-->
 
 	<windowclass name="cgen_header">
 		<margins control="0,0,0,7" />
