@@ -1850,10 +1850,11 @@ function dropIter(atkline)
 		for ke,va in pairs(v) do
 			atkName = va:match('%a+');
 			a,b = va:find(atkName);
+			--c,d = va:find('[%+%-][^%a%s]+',b); 
 			c,d = va:find('[^%a%s]+',b); 
 			mod = va:sub(c,d);
 			newmod = getBonusNumber(va:sub(c,va:find('[/%s]',c)),1);
-			--dlog(va .. a .. ' ' .. b .. ' ' .. c .. ' ' .. d .. ' ' .. mod .. ' ' .. newmod); 
+			-- dlog(va .. a .. ' ' .. b .. ' ' .. c .. ' ' .. d .. ' ' .. mod .. ' ' .. newmod); 
 			va = va:gsub(escMagic(mod),newmod); 
 			-- strip multiple attacks
 			a = va:match('%d+'); 
@@ -1899,7 +1900,7 @@ function parseEquipment(creature, data)
 	end
 
 	if not cgear and not ogear then
-		tmp = getLineByName('Other Gear',data,creature.mark_statistics,(nil == creature.mark_ecology and #data or creature.mark_ecology)); 
+		tmp = getLineByName('Gear',data,creature.mark_statistics,(nil == creature.mark_ecology and #data or creature.mark_ecology)); 
 		if tmp then
 			gear = trim(getValueByName('Gear',tmp,termChars));
 		end
@@ -2101,6 +2102,7 @@ function stripString(data)
 	data = data:gsub('&#151;','--');
 	data = data:gsub('&#150;','-');
 	data = data:gsub('&#215;','x'); 
+	data = data:gsub('&#146;','\''); 
 
 	-- UTF-8 codes
 	data = data:gsub('\\u2013','-'); 
