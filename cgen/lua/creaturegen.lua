@@ -1850,17 +1850,19 @@ function dropIter(atkline)
 		for ke,va in pairs(v) do
 			atkName = va:match('%a+');
 			a,b = va:find(atkName);
-			--c,d = va:find('[%+%-][^%a%s]+',b); 
-			c,d = va:find('[^%a%s]+',b); 
-			mod = va:sub(c,d);
-			newmod = getBonusNumber(va:sub(c,va:find('[/%s]',c)),1);
-			-- dlog(va .. a .. ' ' .. b .. ' ' .. c .. ' ' .. d .. ' ' .. mod .. ' ' .. newmod); 
-			va = va:gsub(escMagic(mod),newmod); 
-			-- strip multiple attacks
-			a = va:match('%d+'); 
-			c,d = va:find(a); 
-			if c == 1 then
-				va = trim(va:sub(d+1)); 
+			--c,d = va:find('[^%a%s]+',b); 
+			c,d = va:find('[%+%-][%d]+',b); 
+			if (c ~= nil) then
+				mod = va:sub(c,d);
+				newmod = getBonusNumber(va:sub(c,va:find('[/%s]',c)),1);
+				--dlog(va .. a .. ' ' .. b .. ' ' .. c .. ' ' .. d .. ' ' .. mod .. ' ' .. newmod); 
+				va = va:gsub(escMagic(mod),newmod); 
+				-- strip multiple attacks
+				a = va:match('%d+'); 
+				c,d = va:find(a); 
+				if c == 1 then
+					va = trim(va:sub(d+1)); 
+				end
 			end
 			volleys[k][ke] = va; 
 			creLog('dropIter (dropping iteratives) : ' .. tostring(va),3); 
