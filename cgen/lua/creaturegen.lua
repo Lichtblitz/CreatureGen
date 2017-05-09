@@ -1087,11 +1087,20 @@ function parsePreliminary(creature,data,ldata)
 	creature.name = trim(name); 
 
 	-- parse CR
-	cr = data[1]:reverse():match('%d+');
-	if (nil == cr) then
+	tmp = data[1]:reverse():match('%d/%d');
+	if nil == tmp then
+		tmp = data[1]:reverse():match('%d+');
+	end
+	if (nil == tmp) then
 		cr = 0;
 	else 
-		cr = tonumber(cr:reverse()); 
+		-- we have a fraction, deal with it..
+		cr = tonumber(tmp); 
+		if (nil == cr) then
+			local cr_lf = tonumber(tmp:match('%d'));
+			local cr_uf = tonumber(tmp:reverse():match('%d')); 
+			cr = math.floor(((cr_uf/cr_lf)*10^2)+0.5) / (10^2); 
+		end
 	end
 	creature.cr = cr; 
 
