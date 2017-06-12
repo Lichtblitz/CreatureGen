@@ -872,7 +872,7 @@ function buildNotesFormat(creData)
 
 	-- statblock
 	retval = retval .. '<h>Statstics Block</h>'
-	retval = retval .. '<table><tr><td>' .. creature.fmt .. '</td></tr></table>'; 
+	retval = retval .. creature.fmt; 
 
 	return retval; 
 end
