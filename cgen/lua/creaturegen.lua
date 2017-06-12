@@ -1079,7 +1079,7 @@ function parsePreliminary(creature,data,ldata)
 	-- find the name, look for CR with some numbers or --
 
 	tmp,tmp2 = getLineByName('CR',data,1,creature.mark_defense); 
-	if not tmp or not tmp:match('CR%s%d*') then
+	if tmp == nil or not tmp:match('CR%s%d*') then
 		error('NO Name found! Name must be followed by a CR ie: "Sea turtle CR 1/8"'); 
 	end
 
@@ -1091,8 +1091,9 @@ function parsePreliminary(creature,data,ldata)
 
 	-- parse name
 	name = tmp:match('.+CR'); 
+	dlog(name); 
 	if (name == nil) then
-		name = data[1];
+		error('NO Name found! Name must be followed by a CR ie: "Sea turtle CR 1/8"'); 
 	else
 		name = name:reverse();
 		name = name:sub(name:find('RC')+2);
