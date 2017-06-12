@@ -872,7 +872,7 @@ function buildNotesFormat(creData)
 
 	-- statblock
 	retval = retval .. '<h>Statstics Block</h>'
-	retval = retval .. creature.fmt; 
+	retval = retval .. '<table><tr><td>' .. creature.fmt .. '</td></tr></table>'; 
 
 	return retval; 
 end
@@ -1910,11 +1910,12 @@ function dropIter(atkline)
 			atkName = va:match('%a+');
 			a,b = va:find(atkName);
 			--c,d = va:find('[^%a%s]+',b); 
+			dlog(atkName); 
 			c,d = va:find('[%+%-][%d]+',b); 
 			if (c ~= nil) then
 				mod = va:sub(c,d);
 				newmod = getBonusNumber(va:sub(c,va:find('[/%s]',c)),1);
-				--dlog(va .. a .. ' ' .. b .. ' ' .. c .. ' ' .. d .. ' ' .. mod .. ' ' .. newmod); 
+				dlog(va .. a .. ' ' .. b .. ' ' .. c .. ' ' .. d .. ' ' .. mod .. ' ' .. newmod); 
 				va = va:gsub(escMagic(mod),newmod); 
 				-- strip multiple attacks
 				a = va:match('%d+'); 
