@@ -829,6 +829,12 @@ function buildNotesFormat(creData)
 	local retval = '';
 	local creature = creData.creature; 
 
+	-- Description
+	if creature.desc then
+		retval = retval .. '<h>Description</h>\n'; 
+		retval = retval .. '<frame>' .. creature.desc .. '</frame>'; 
+	end
+
 	if creature.saverider then
 		retval = retval .. '<h>Saving Throw Bonuses</h>\n';
 		retval = retval .. '<p>' .. creature.saverider .. '</p>\n'; 
@@ -856,6 +862,12 @@ function buildNotesFormat(creData)
 		if creature.basestats then
 			retval = retval .. '<p><b>Base Statistics: </b>' .. creature.basestats .. '</p>\n';
 		end
+	end
+
+	-- Ecological information
+	if creature.ecoinfo ~= '' then
+		retval = retval .. '<h>Ecological Information</h>\n';
+		retval = retval .. creature.ecoinfo; 
 	end
 
 	-- statblock
@@ -1019,7 +1031,7 @@ end
 	offense section.
 ]]--
 function parsePreliminary(creature,data,ldata)
-	local name,cr,exp,hp,hd; 
+	local name,cr,exp,hp,hd,desc; 
 	local senses,alignment,aura,tpe,init; 
 	local tmp,tmp2; 
 	local termChars = {',',';'}; 
@@ -1064,9 +1076,21 @@ function parsePreliminary(creature,data,ldata)
 		creature.mark_ecology = #ldata; 
 	end
 
+	-- find the name, look for CR with some numbers or --
+
+	tmp,tmp2 = getLineByName('CR',data,1,creature.mark_defense); 
+	if not tmp or not tmp:match('CR%s%d*') then
+		error('NO Name found! Name must be followed by a CR ie: "Sea turtle CR 1/8"'); 
+	end
+
+	-- parse description, we just have to assume line one if the name isn't already found there
+	if tmp2 ~= 1 then
+		desc = data[1]; 
+		creature.desc = desc; 
+	end
+
 	-- parse name
-	name = data[1]; 
-	name = data[1]:match('.+CR'); 
+	name = tmp:match('.+CR'); 
 	if (name == nil) then
 		name = data[1];
 	else
@@ -1095,7 +1119,7 @@ function parsePreliminary(creature,data,ldata)
 		cr = 0;
 	else 
 		-- we have a fraction, deal with it..
-		cr = tonumber(tmp); 
+		cr = tonumber(tmp:reverse()); 
 		if (nil == cr) then
 			local cr_lf = tonumber(tmp:match('%d'));
 			local cr_uf = tonumber(tmp:reverse():match('%d')); 
@@ -1306,6 +1330,11 @@ function parseOffense(creature,data)
 	if tmp then
 		sa = getValueByName('Special Attacks',tmp,{}); 
 		-- TODO add to creature.spells the special abilities of the attacks
+	else
+		tmp = getLineByName('Special Attack',data,creature.mark_offense,(nil == creature.mark_tactics and #data or creature.mark_tactics)); 
+		if tmp then
+			sa = getValueByName('Special Attack',tmp,{}); 
+		end
 	end
 	if sa then creature.sa = trim(sa); end
 
@@ -1732,20 +1761,36 @@ end
 	NOTE: treasure is parsed in statistics as it's combined with gear(combat/other/untyped)
 ]]--
 function parseEcology(creature,data)
-	local org,env;
+	local org,env,extra,line;
 	local tmp; 
 
-	tmp = getLineByName('Organization',data,creature.mark_ecology,(nil == creature.mark_special_abilities and #data or creature.mark_special_abilities)); 
+	tmp = getLineByName('Organization',data,creature.mark_ecology,#data); 
 	if tmp then
 		org = trim(getValueByName('Organization',tmp,{})); 
 	end
 	creature.organization = org;
 
-	tmp = getLineByName('Environment',data,creature.mark_ecology,(nil == creature.mark_special_abilities and #data or creature.mark_special_abilities)); 
+	tmp = getLineByName('Environment',data,creature.mark_ecology,#data); 
 	if tmp then
 		env = trim(getValueByName('Environment',tmp,{})); 
 	end
 	creature.environment = env;
+
+	if creature.mark_ecology then
+		extra = ''; 
+		for i=(creature.mark_ecology+1), #data do
+			line = data[i]; 
+			if line:match('Environment') 
+			or line:match('Organization')
+			or line:match('Treasure') then
+				-- skip
+			else
+				extra = extra .. '<p>' .. line .. '</p>'; 
+			end
+		end
+		creature.ecoinfo = extra; 
+	end
+
 end
 
 --[[
