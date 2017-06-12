@@ -1090,7 +1090,8 @@ function parsePreliminary(creature,data,ldata)
 	end
 
 	-- parse name
-	name = tmp:match('.+CR'); 
+	name = tmp; 
+	tmp2 = tmp
 	dlog(name); 
 	if (name == nil) then
 		error('NO Name found! Name must be followed by a CR ie: "Sea turtle CR 1/8"'); 
@@ -1112,9 +1113,12 @@ function parsePreliminary(creature,data,ldata)
 	creature.name = trim(name); 
 
 	-- parse CR
-	tmp = data[1]:reverse():match('%d/%d');
+	dlog(tmp2); 
+	tmp = tmp2:reverse():match('%d/%d');
+	dlog(tostring(tmp)); 
 	if nil == tmp then
-		tmp = data[1]:reverse():match('%d+');
+		tmp = tmp2:reverse():match('%d+');
+		dlog('dose ' .. tostring(tmp)); 
 	end
 	if (nil == tmp) then
 		cr = 0;
