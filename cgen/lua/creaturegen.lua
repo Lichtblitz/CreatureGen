@@ -324,259 +324,25 @@ function popSpells(creBase, creData)
 					spellType = k2;
 					spellTypeBaseNode = casterNode.createChild('levels'); 
 					if spellType:match('0') then
-						casterNode.createChild('availablelevel0','number'); 
-						casterNode.getChildren().availablelevel0.setValue(#creature.spells[casterType][spellType]); 
-						tmp = spellTypeBaseNode.createChild('level0'); 
-						tmp.createChild('level','number');
-						tmp.createChild('maxprepared','number');
-						tmp.createChild('totalcast','number');
-						tmp.createChild('totalprepared','number'); 
-						spellTypeNode = tmp.createChild('spells'); 
-						tmp = tmp.getChildren();
-						tmp.level.setValue(0);
-						tmp.maxprepared.setValue(#creature.spells[casterType][spellType]); 
-						tmp.totalcast.setValue(0);
-						tmp.totalprepared.setValue(#creature.spells[casterType][spellType]); 
-						popSpellTypeList(creData,spellTypeNode,casterType,spellType); 
-
+						addSpellCantripOrison(creData,spellTypeBaseNode,casterNode,casterType,spellType); 
 					elseif spellType:match('1st') then
-						casterNode.createChild('availablelevel1','number'); 
-						casterNode.getChildren().availablelevel1.setValue(getSpellsPerLevel(creData,spellTypeNode,casterType,spellType)); 
-						tmp = spellTypeBaseNode.createChild('level1'); 
-						tmp.createChild('level','number');
-						tmp.createChild('maxprepared','number');
-						tmp.createChild('totalcast','number');
-						tmp.createChild('totalprepared','number'); 
-						spellTypeNode = tmp.createChild('spells'); 
-						tmp = tmp.getChildren();
-						tmp.level.setValue(1);
-						tmp.maxprepared.setValue(#creature.spells[casterType][spellType]); 
-
-						if casterType:match('Spells Known') then
-							rc = spellType:find('%('); 
-							rc = spellType:sub(rc);
-							rc = getBonusNumber(rc); 
-							if rc then
-								casterNode.getChildren().availablelevel1.setValue(rc); 
-							end
-						end
-
-						tmp.totalcast.setValue(0);
-						tmp.totalprepared.setValue(#creature.spells[casterType][spellType]); 
-						popSpellTypeList(creData,spellTypeNode,casterType,spellType); 
-
+						addSpellLevel(creData,spellTypeBaseNode,casterNode,casterType,spellType,1); 
 					elseif spellType:match('2nd') then
-						casterNode.createChild('availablelevel2','number'); 
-						casterNode.getChildren().availablelevel2.setValue(getSpellsPerLevel(creData,spellTypeNode,casterType,spellType)); 
-						tmp = spellTypeBaseNode.createChild('level2'); 
-						tmp.createChild('level','number');
-						tmp.createChild('maxprepared','number');
-						tmp.createChild('totalcast','number');
-						tmp.createChild('totalprepared','number'); 
-						spellTypeNode = tmp.createChild('spells'); 
-						tmp = tmp.getChildren();
-						tmp.level.setValue(2);
-						tmp.maxprepared.setValue(#creature.spells[casterType][spellType]); 
-
-						if casterType:match('Spells Known') then
-							rc = spellType:find('%('); 
-							rc = spellType:sub(rc);
-							rc = getBonusNumber(rc); 
-							if rc then
-								casterNode.getChildren().availablelevel2.setValue(rc); 
-							end
-						end
-
-						tmp.totalcast.setValue(0);
-						tmp.totalprepared.setValue(#creature.spells[casterType][spellType]); 
-						popSpellTypeList(creData,spellTypeNode,casterType,spellType); 
-
+						addSpellLevel(creData,spellTypeBaseNode,casterNode,casterType,spellType,2); 
 					elseif spellType:match('3rd') then
-						casterNode.createChild('availablelevel3','number'); 
-						casterNode.getChildren().availablelevel3.setValue(getSpellsPerLevel(creData,spellTypeNode,casterType,spellType)); 
-						tmp = spellTypeBaseNode.createChild('level3'); 
-						tmp.createChild('level','number');
-						tmp.createChild('maxprepared','number');
-						tmp.createChild('totalcast','number');
-						tmp.createChild('totalprepared','number'); 
-						spellTypeNode = tmp.createChild('spells'); 
-						tmp = tmp.getChildren();
-						tmp.level.setValue(3);
-						tmp.maxprepared.setValue(#creature.spells[casterType][spellType]); 
-
-						if casterType:match('Spells Known') then
-							rc = spellType:find('%('); 
-							rc = spellType:sub(rc);
-							rc = getBonusNumber(rc); 
-							if rc then
-								casterNode.getChildren().availablelevel3.setValue(rc); 
-							end
-						end
-
-						tmp.totalcast.setValue(0);
-						tmp.totalprepared.setValue(#creature.spells[casterType][spellType]); 
-						popSpellTypeList(creData,spellTypeNode,casterType,spellType); 
-
+						addSpellLevel(creData,spellTypeBaseNode,casterNode,casterType,spellType,3); 
 					elseif spellType:match('4th') then
-						casterNode.createChild('availablelevel4','number'); 
-						casterNode.getChildren().availablelevel4.setValue(getSpellsPerLevel(creData,spellTypeNode,casterType,spellType)); 
-						tmp = spellTypeBaseNode.createChild('level4'); 
-						tmp.createChild('level','number');
-						tmp.createChild('maxprepared','number');
-						tmp.createChild('totalcast','number');
-						tmp.createChild('totalprepared','number'); 
-						spellTypeNode = tmp.createChild('spells'); 
-						tmp = tmp.getChildren();
-						tmp.level.setValue(4);
-						tmp.maxprepared.setValue(#creature.spells[casterType][spellType]); 
-
-						if casterType:match('Spells Known') then
-							rc = spellType:find('%('); 
-							rc = spellType:sub(rc);
-							rc = getBonusNumber(rc); 
-							if rc then
-								casterNode.getChildren().availablelevel4.setValue(rc); 
-							end
-						end
-
-
-						tmp.totalcast.setValue(0);
-						tmp.totalprepared.setValue(#creature.spells[casterType][spellType]); 
-						popSpellTypeList(creData,spellTypeNode,casterType,spellType); 
-
+						addSpellLevel(creData,spellTypeBaseNode,casterNode,casterType,spellType,4); 
 					elseif spellType:match('5th') then
-						casterNode.createChild('availablelevel5','number'); 
-						casterNode.getChildren().availablelevel5.setValue(getSpellsPerLevel(creData,spellTypeNode,casterType,spellType)); 
-						tmp = spellTypeBaseNode.createChild('level5'); 
-						tmp.createChild('level','number');
-						tmp.createChild('maxprepared','number');
-						tmp.createChild('totalcast','number');
-						tmp.createChild('totalprepared','number'); 
-						spellTypeNode = tmp.createChild('spells'); 
-						tmp = tmp.getChildren();
-						tmp.level.setValue(5);
-						tmp.maxprepared.setValue(#creature.spells[casterType][spellType]); 
-
-						if casterType:match('Spells Known') then
-							rc = spellType:find('%('); 
-							rc = spellType:sub(rc);
-							rc = getBonusNumber(rc); 
-							if rc then
-								casterNode.getChildren().availablelevel5.setValue(rc); 
-							end
-						end
-
-
-						tmp.totalcast.setValue(0);
-						tmp.totalprepared.setValue(#creature.spells[casterType][spellType]); 
-						popSpellTypeList(creData,spellTypeNode,casterType,spellType); 
-
+						addSpellLevel(creData,spellTypeBaseNode,casterNode,casterType,spellType,5); 
 					elseif spellType:match('6th') then
-						casterNode.createChild('availablelevel6','number'); 
-						casterNode.getChildren().availablelevel6.setValue(getSpellsPerLevel(creData,spellTypeNode,casterType,spellType)); 
-						tmp = spellTypeBaseNode.createChild('level6'); 
-						tmp.createChild('level','number');
-						tmp.createChild('maxprepared','number');
-						tmp.createChild('totalcast','number');
-						tmp.createChild('totalprepared','number'); 
-						spellTypeNode = tmp.createChild('spells'); 
-						tmp = tmp.getChildren();
-						tmp.level.setValue(6);
-						tmp.maxprepared.setValue(#creature.spells[casterType][spellType]); 
-
-						if casterType:match('Spells Known') then
-							rc = spellType:find('%('); 
-							rc = spellType:sub(rc);
-							rc = getBonusNumber(rc); 
-							if rc then
-								casterNode.getChildren().availablelevel6.setValue(rc); 
-							end
-						end
-
-
-						tmp.totalcast.setValue(0);
-						tmp.totalprepared.setValue(#creature.spells[casterType][spellType]); 
-						popSpellTypeList(creData,spellTypeNode,casterType,spellType); 
-
+						addSpellLevel(creData,spellTypeBaseNode,casterNode,casterType,spellType,6); 
 					elseif spellType:match('7th') then
-						casterNode.createChild('availablelevel7','number'); 
-						casterNode.getChildren().availablelevel7.setValue(getSpellsPerLevel(creData,spellTypeNode,casterType,spellType)); 
-						tmp = spellTypeBaseNode.createChild('level7'); 
-						tmp.createChild('level','number');
-						tmp.createChild('maxprepared','number');
-						tmp.createChild('totalcast','number');
-						tmp.createChild('totalprepared','number'); 
-						spellTypeNode = tmp.createChild('spells'); 
-						tmp = tmp.getChildren();
-						tmp.level.setValue(7);
-						tmp.maxprepared.setValue(#creature.spells[casterType][spellType]); 
-
-						if casterType:match('Spells Known') then
-							rc = spellType:find('%('); 
-							rc = spellType:sub(rc);
-							rc = getBonusNumber(rc); 
-							if tmp.maxprepared.getValue() then
-								casterNode.getChildren().availablelevel7.setValue(rc); 
-							end
-						end
-
-
-						tmp.totalcast.setValue(0);
-						tmp.totalprepared.setValue(#creature.spells[casterType][spellType]); 
-						popSpellTypeList(creData,spellTypeNode,casterType,spellType); 
-
+						addSpellLevel(creData,spellTypeBaseNode,casterNode,casterType,spellType,7); 
 					elseif spellType:match('8th') then
-						casterNode.createChild('availablelevel8','number'); 
-						casterNode.getChildren().availablelevel8.setValue(getSpellsPerLevel(creData,spellTypeNode,casterType,spellType)); 
-						tmp = spellTypeBaseNode.createChild('level8'); 
-						tmp.createChild('level','number');
-						tmp.createChild('maxprepared','number');
-						tmp.createChild('totalcast','number');
-						tmp.createChild('totalprepared','number'); 
-						spellTypeNode = tmp.createChild('spells'); 
-						tmp = tmp.getChildren();
-						tmp.level.setValue(8);
-						tmp.maxprepared.setValue(#creature.spells[casterType][spellType]); 
-
-						if casterType:match('Spells Known') then
-							rc = spellType:find('%('); 
-							rc = spellType:sub(rc);
-							rc = getBonusNumber(rc); 
-							if tmp.maxprepared.getValue() then
-								casterNode.getChildren().availablelevel8.setValue(rc); 
-							end
-						end
-
-						tmp.totalcast.setValue(0);
-						tmp.totalprepared.setValue(#creature.spells[casterType][spellType]); 
-						popSpellTypeList(creData,spellTypeNode,casterType,spellType); 
-
+						addSpellLevel(creData,spellTypeBaseNode,casterNode,casterType,spellType,8); 
 					elseif spellType:match('9th') then
-						casterNode.createChild('availablelevel9','number'); 
-						casterNode.getChildren().availablelevel9.setValue(getSpellsPerLevel(creData,spellTypeNode,casterType,spellType)); 
-						tmp = spellTypeBaseNode.createChild('level9'); 
-						tmp.createChild('level','number');
-						tmp.createChild('maxprepared','number');
-						tmp.createChild('totalcast','number');
-						tmp.createChild('totalprepared','number'); 
-						spellTypeNode = tmp.createChild('spells'); 
-						tmp = tmp.getChildren();
-						tmp.level.setValue(9);
-						tmp.maxprepared.setValue(#creature.spells[casterType][spellType]); 
-
-						if casterType:match('Spells Known') then
-							rc = spellType:find('%('); 
-							rc = spellType:sub(rc);
-							rc = getBonusNumber(rc); 
-							if tmp.maxprepared.getValue() then
-								casterNode.getChildren().availablelevel9.setValue(rc); 
-							end
-						end
-
-						tmp.totalcast.setValue(0);
-						tmp.totalprepared.setValue(#creature.spells[casterType][spellType]); 
-						popSpellTypeList(creData,spellTypeNode,casterType,spellType); 
-
+						addSpellLevel(creData,spellTypeBaseNode,casterNode,casterType,spellType,9); 
 					end
 				end
 			end
@@ -584,6 +350,62 @@ function popSpells(creBase, creData)
 	end
 
 	popSpellLikeAb(creBase,creData,cnt); 
+end
+
+
+--[[
+	Add spell cantrips/orisons (0th)
+]]--
+function addSpellCantripOrison(creData,spellTypeBaseNode,casterNode,casterType,spellType,idcarry)
+	local creature = creData.creature; 
+
+	casterNode.createChild('availablelevel0','number'); 
+	casterNode.getChildren().availablelevel0.setValue(#creature.spells[casterType][spellType]); 
+	tmp = spellTypeBaseNode.createChild('level0'); 
+	tmp.createChild('level','number');
+	tmp.createChild('maxprepared','number');
+	tmp.createChild('totalcast','number');
+	tmp.createChild('totalprepared','number'); 
+	spellTypeNode = tmp.createChild('spells'); 
+	tmp = tmp.getChildren();
+	tmp.level.setValue(0);
+	tmp.maxprepared.setValue(#creature.spells[casterType][spellType]); 
+	tmp.totalcast.setValue(0);
+	tmp.totalprepared.setValue(#creature.spells[casterType][spellType]); 
+	return popSpellTypeList(creData,spellTypeNode,casterType,spellType,idcarry); 
+end
+
+--[[
+	Add spell Levels 1-9
+]]--
+function addSpellLevel(creData,spellTypeBaseNode,casterNode,casterType,spellType,level,idcarry)
+	local creature = creData.creature; 
+
+	casterNode.createChild('availablelevel' .. tostring(level),'number'); 
+	casterNode.getChildren()['availablelevel' .. tostring(level)].setValue(getSpellsPerLevel(creData,spellTypeNode,casterType,spellType)); 
+
+	tmp = spellTypeBaseNode.createChild('level' .. tostring(level)); 
+	tmp.createChild('level','number');
+	tmp.createChild('maxprepared','number');
+	tmp.createChild('totalcast','number');
+	tmp.createChild('totalprepared','number'); 
+	spellTypeNode = tmp.createChild('spells'); 
+	tmp = tmp.getChildren();
+	tmp.level.setValue(level);
+	tmp.maxprepared.setValue(#creature.spells[casterType][spellType]); 
+
+	if casterType:match('Spells Known') then
+		rc = spellType:find('%('); 
+		rc = spellType:sub(rc);
+		rc = getBonusNumber(rc); 
+		if tmp.maxprepared.getValue() then
+			casterNode.getChildren()['availablelevel' .. tostring(level)].setValue(rc); 
+		end
+	end
+
+	tmp.totalcast.setValue(0);
+	tmp.totalprepared.setValue(#creature.spells[casterType][spellType]); 
+	return popSpellTypeList(creData,spellTypeNode,casterType,spellType,idcarry); 
 end
 
 --[[
@@ -629,66 +451,39 @@ function popSpellLikeAb(creBase, creData, idcarry)
 					spellType = k2; 
 					spellTypeBaseNode = casterNode.createChild('levels'); 
 					if spellType:match('Constant') then
-						casterNode.createChild('availablelevel0','number'); 
-						rc = (#creature.spells[casterType][spellType]); 
-						tmp = spellTypeBaseNode.createChild('level0'); 
-						tmp.createChild('level','number');
-						tmp.createChild('maxprepared','number');
-						tmp.createChild('totalcast','number');
-						tmp.createChild('totalprepared','number'); 
-						spellTypeNode = tmp.createChild('spells'); 
-						tmp = tmp.getChildren();
-						tmp.level.setValue(0);
-						if tmp.maxprepared.getValue() then
-							casterNode.getChildren().availablelevel0.setValue(tmp.maxprepared.getValue()+rc); 
-							tmp.maxprepared.setValue(tmp.maxprepared.getValue()+rc); 
-						end
-						tmp.totalcast.setValue(0);
-						tmp.totalprepared.setValue(#creature.spells[casterType][spellType]); 
-						sidcarry = popSpellTypeList(creData,spellTypeNode,casterType,spellType,sidcarry); 
+						sidcarry = addSpellCantripOrison(creData,spellTypeBaseNode,casterNode,casterType,spellType); 
 					elseif spellType:match('At will') then
-						casterNode.createChild('availablelevel0','number'); 
-						rc = (#creature.spells[casterType][spellType]); 
-						tmp = spellTypeBaseNode.createChild('level0'); 
-						tmp.createChild('level','number');
-						tmp.createChild('maxprepared','number');
-						tmp.createChild('totalcast','number');
-						tmp.createChild('totalprepared','number'); 
-						spellTypeNode = tmp.createChild('spells'); 
-						tmp = tmp.getChildren();
-						tmp.level.setValue(0);
-						if tmp.maxprepared.getValue() then
-							casterNode.getChildren().availablelevel0.setValue(tmp.maxprepared.getValue()+rc); 
-							tmp.maxprepared.setValue(tmp.maxprepared.getValue()+rc); 
-						end
-						tmp.totalcast.setValue(0);
-						tmp.totalprepared.setValue(#creature.spells[casterType][spellType]); 
-						sidcarry = popSpellTypeList(creData,spellTypeNode,casterType,spellType,sidcarry); 
+						sidcarry = addSpellCantripOrison(creData,spellTypeBaseNode,casterNode,casterType,spellType); 
 					elseif spellType:match('day') then
 						if next(avail) == nil then
 							-- we need to create a new overflow class!!
 							error('OVERFLOW on spell-like abilities currently unhandled'); 
 						end
 						alloLevel = table.remove(avail,1);
-						casterNode.createChild('availablelevel' .. tostring(alloLevel),'number'); 
-						rc = getBonusNumber(spellType); 
-						casterNode.getChildren()['availablelevel' .. tostring(alloLevel)].setValue(rc); 
-						tmp = spellTypeBaseNode.createChild('level' .. tostring(alloLevel)); 
-						tmp.createChild('level','number');
-						tmp.createChild('maxprepared','number');
-						tmp.createChild('totalcast','number');
-						tmp.createChild('totalprepared','number'); 
-						spellTypeNode = tmp.createChild('spells'); 
-						tmp = tmp.getChildren();
-						tmp.level.setValue(alloLevel);
-						tmp.totalcast.setValue(0);
-						tmp.maxprepared.setValue(rc); 
-						tmp.totalprepared.setValue(#creature.spells[casterType][spellType]); 
-						popSpellTypeList(creData,spellTypeNode,casterType,spellType); 
-						
+						addSpellLevel(creData,spellTypeBaseNode,casterNode,casterType,spellType,alloLevel); 
+					elseif spellType:match('week') then
+						if next(avail) == nil then
+							-- we need to create a new overflow class!!
+							error('OVERFLOW on spell-like abilities currently unhandled'); 
+						end
+						alloLevel = table.remove(avail,1);
+						addSpellLevel(creData,spellTypeBaseNode,casterNode,casterType,spellType,alloLevel); 
+					elseif spellType:match('month') then
+						if next(avail) == nil then
+							-- we need to create a new overflow class!!
+							error('OVERFLOW on spell-like abilities currently unhandled'); 
+						end
+						alloLevel = table.remove(avail,1);
+						addSpellLevel(creData,spellTypeBaseNode,casterNode,casterType,spellType,alloLevel); 
+					elseif spellType:match('year') then
+						if next(avail) == nil then
+							-- we need to create a new overflow class!!
+							error('OVERFLOW on spell-like abilities currently unhandled'); 
+						end
+						alloLevel = table.remove(avail,1);
+						addSpellLevel(creData,spellTypeBaseNode,casterNode,casterType,spellType,alloLevel); 
 
 					end
-
 				end
 			end
 		end
@@ -808,6 +603,8 @@ function linkSpellLibrary(spellNode, spellData)
 			if tmpb.shortdescription then
 				tmp.shortdescription.setValue(tmpb.shortdescription.getValue()); 
 			end
+			-- Let SpellManager parse our spell
+			SpellManager.parseSpell(spellNode); 
 		else
 			addWarn('"' .. spellData.name .. '" cannot be found within spell library "' .. fields.spelllib .. '"'); 
 		end
@@ -1146,39 +943,40 @@ function parsePreliminary(creature,data,ldata)
 	-- TODO parse out class levels, for NPCs and a bunch of monster codex entries
 	-- ie: medium goblin bla bla
 	--     Cleric 2
-	-- which are on seperate lines
-	tmp,tmp2 = getLineByName('small',ldata,1,(nil == creature.mark_defense and #data or creature.mark_defense));
+	-- which are on seperate lines we skip the first line as the description may have the target string 
+
+	tmp,tmp2 = getLineByName('small',ldata,2,(nil == creature.mark_defense and #data or creature.mark_defense));
 	creature.size = 'small'; 
 	if not tmp then
-		tmp,tmp2 = getLineByName('medium',ldata,1,(nil == creature.mark_defense and #data or creature.mark_defense));
+		tmp,tmp2 = getLineByName('medium',ldata,2,(nil == creature.mark_defense and #data or creature.mark_defense));
 		creature.size = 'medium'; 
 	end
 	if not tmp then
-		tmp,tmp2 = getLineByName('large',ldata,1,(nil == creature.mark_defense and #data or creature.mark_defense));
+		tmp,tmp2 = getLineByName('large',ldata,2,(nil == creature.mark_defense and #data or creature.mark_defense));
 		creature.size = 'large'; 
 	end
 	if not tmp then
-		tmp,tmp2 = getLineByName('huge',ldata,1,(nil == creature.mark_defense and #data or creature.mark_defense));
+		tmp,tmp2 = getLineByName('huge',ldata,2,(nil == creature.mark_defense and #data or creature.mark_defense));
 		creature.size = 'huge'; 
 	end
 	if not tmp then
-		tmp,tmp2 = getLineByName('gargantuan',ldata,1,(nil == creature.mark_defense and #data or creature.mark_defense));
+		tmp,tmp2 = getLineByName('gargantuan',ldata,2,(nil == creature.mark_defense and #data or creature.mark_defense));
 		creature.size = 'gargantuan'; 
 	end
 	if not tmp then
-		tmp,tmp2 = getLineByName('colossal',ldata,1,(nil == creature.mark_defense and #data or creature.mark_defense));
+		tmp,tmp2 = getLineByName('colossal',ldata,2,(nil == creature.mark_defense and #data or creature.mark_defense));
 		creature.size = 'colossal'; 
 	end
 	if not tmp then
-		tmp,tmp2 = getLineByName('tiny',ldata,1,(nil == creature.mark_defense and #data or creature.mark_defense));
+		tmp,tmp2 = getLineByName('tiny',ldata,2,(nil == creature.mark_defense and #data or creature.mark_defense));
 		creature.size = 'tiny'; 
 	end
 	if not tmp then
-		tmp,tmp2 = getLineByName('diminutive',ldata,1,(nil == creature.mark_defense and #data or creature.mark_defense));
+		tmp,tmp2 = getLineByName('diminutive',ldata,2,(nil == creature.mark_defense and #data or creature.mark_defense));
 		creature.size = 'diminutive'; 
 	end
 	if not tmp then
-		tmp,tmp2 = getLineByName('fine',ldata,1,(nil == creature.mark_defense and #data or creature.mark_defense));
+		tmp,tmp2 = getLineByName('fine',ldata,2,(nil == creature.mark_defense and #data or creature.mark_defense));
 		creature.size = 'fine'; 
 	end
 	creature.tpe = trim(data[tmp2]); 
@@ -1783,9 +1581,13 @@ function parseEcology(creature,data)
 
 	if creature.mark_ecology then
 		extra = ''; 
-		for i=(creature.mark_ecology+1), #data do
+		for i=(creature.mark_special_abilities or creature.mark_ecology)+1, #data do
 			line = data[i]; 
-			if line:match('Environment') 
+			lline = data[i]:lower(); 
+			if lline:match('(su)') 
+			or lline:match('(ex)')
+			or lline:match('(sp)') 
+			or line:match('Environment') 
 			or line:match('Organization')
 			or line:match('Treasure') then
 				-- skip
