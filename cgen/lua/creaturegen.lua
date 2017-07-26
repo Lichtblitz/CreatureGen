@@ -1581,21 +1581,28 @@ function parseEcology(creature,data)
 
 	if creature.mark_ecology then
 		extra = ''; 
-		for i=(creature.mark_special_abilities or creature.mark_ecology)+1, #data do
+		dlog('ECO >> ' .. creature.mark_ecology+1); 
+		dlog('SAB >> ' .. creature.mark_special_abilities+1); 
+		dlog('DATA LEN >> ' .. #data); 
+		dlog('MIN >> ' .. math.min(creature.mark_special_abilities+1,creature.mark_ecology+1)); 
+		for i=(math.min(creature.mark_special_abilities+1,creature.mark_ecology+1)), #data do
 			line = data[i]; 
 			lline = data[i]:lower(); 
-			if lline:match('(su)') 
-			or lline:match('(ex)')
-			or lline:match('(sp)') 
-			or line:match('Environment') 
+			if lline:match('%(su%)')
+			or lline:match('%(ex%)')
+			or lline:match('%(sp%)')
+			or lline == 'ecology'
+			or line:match('Environment')
 			or line:match('Organization')
 			or line:match('Treasure') then
 				-- skip
 			else
+				dlog('VALID!! ##'.. i); 
 				extra = extra .. '<p>' .. line .. '</p>'; 
 			end
 		end
-		creature.ecoinfo = extra; 
+		creature.ecoinfo = extra;
+		dlog(extra); 
 	end
 
 end
