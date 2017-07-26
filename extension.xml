@@ -35,5 +35,5 @@
 		<includefile source="cgen/xml/strings/scriptres.xml" />
 	</base>
 
-	<announcement text="CreatureGen v1.55 (GPL v3)" font="emotefont" icon="gCGenExtensionIcon" />
+	<announcement text="CreatureGen v1.56 (GPL v3)" font="emotefont" icon="gCGenExtensionIcon" />
 </root>
