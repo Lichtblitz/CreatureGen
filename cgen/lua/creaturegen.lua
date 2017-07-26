@@ -1581,10 +1581,6 @@ function parseEcology(creature,data)
 
 	if creature.mark_ecology then
 		extra = ''; 
-		dlog('ECO >> ' .. creature.mark_ecology+1); 
-		dlog('SAB >> ' .. creature.mark_special_abilities+1); 
-		dlog('DATA LEN >> ' .. #data); 
-		dlog('MIN >> ' .. math.min(creature.mark_special_abilities+1,creature.mark_ecology+1)); 
 		for i=(math.min(creature.mark_special_abilities+1,creature.mark_ecology+1)), #data do
 			line = data[i]; 
 			lline = data[i]:lower(); 
