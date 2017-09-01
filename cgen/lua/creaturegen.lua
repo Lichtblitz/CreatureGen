@@ -1588,6 +1588,7 @@ function parseEcology(creature,data)
 			or lline:match('%(ex%)')
 			or lline:match('%(sp%)')
 			or lline == 'ecology'
+			or lline == 'special abilities'
 			or line:match('Environment')
 			or line:match('Organization')
 			or line:match('Treasure') then
