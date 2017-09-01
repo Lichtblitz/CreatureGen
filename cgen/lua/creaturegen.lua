@@ -1004,7 +1004,7 @@ end
 function parseDefense(creature,data)
 	local fort,ref,will,saverider; 
 	local ac,ff,tch,acline,isenseline; 
-	local sr,dr,weak,resist,imm,defab,sq,regen,fh; 
+	local sr,dr,weak,resist,hard,imm,defab,sq,regen,fh; 
 	local tmp; 
 	local termChars = {';'}; 
 
@@ -1105,7 +1105,8 @@ function parseDefense(creature,data)
 	if dr then creature.sqline = creature.sqline .. 'DR ' .. trim(dr):gsub(';','') .. '; '; end
 	if sr then creature.sqline = creature.sqline .. 'SR ' .. trim(sr):gsub(';','') .. '; '; end
 	if weak then creature.sqline = creature.sqline .. 'Weaknesses ' .. trim(weak):gsub(';','') .. '; '; end
-	if resist then creature.sqline = creature.sqline .. 'Resistances ' .. trim(resist):gsub(';','') .. '; '; end
+	if resist then creature.sqline = creature.sqline .. 'Resist ' .. trim(resist):gsub(';','') .. '; '; end
+	if hard then creature.sqline = creature.sqline .. 'Hardness ' .. trim(hard):gsub(';','') .. '; '; end
 	if imm then creature.sqline = creature.sqline .. 'Immune ' .. trim(imm):gsub(';','') .. '; '; end
 	if regen then creature.sqline = creature.sqline .. ' regeneration ' .. trim(regen):gsub(';','') .. '; ' ; end
 	if fh then creature.sqline = creature.sqline .. ' fast healing ' .. trim(fh):gsub(';','') .. '; ' ; end
