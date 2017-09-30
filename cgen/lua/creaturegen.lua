@@ -308,7 +308,7 @@ function popSpells(creBase, creData)
 			casterType = k;
 			-- we don't do spell like abilities in this pass
 			if not casterType:match('Spell%-Like') then
-				creLog('caster ->> ' .. casterType,3); 
+				creLog('popSpells: caster ->> ' .. casterType,3); 
 				casterNode = spellList.createChild('id%-' .. string.format('%05d',cnt));
 				casterNode.createChild('label','string'); 
 				casterNode.getChildren().label.setValue(casterType); 
@@ -437,7 +437,7 @@ function popSpellLikeAb(creBase, creData, idcarry)
 			avail = {1,2,3,4,5,6,7,8,9}; 
 			-- we only care about SLAs in this pass
 			if casterType:match('Spell%-Like') then
-				creLog('SLA caster ->> ' .. casterType,3); 
+				creLog('popSpellLikeAb: SLA caster ->> ' .. casterType,3); 
 				casterNode = spellList.createChild('id%-' .. string.format('%05d',cnt));
 				casterNode.createChild('label','string'); 
 				casterNode.getChildren().label.setValue(casterType); 
@@ -560,7 +560,7 @@ function linkSpellLibrary(spellNode, spellData)
 
 	xmlSpellName = trim(spellData.propername:gsub('%s','')) .. spellData.varient; 
 	xmlSpellName = xmlSpellName:lower(); 
-	creLog('library XML spell name searched: "' .. xmlSpellName .. '"',4); 
+	creLog('linkSpellLibrary: library XML spell name searched: "' .. xmlSpellName .. '"',4); 
 
 	minfo = Module.getModuleInfo(fields.spelllib); 
 	if minfo and minfo['loaded'] == true then
@@ -889,7 +889,7 @@ function parsePreliminary(creature,data,ldata)
 	-- parse name
 	name = tmp; 
 	tmp2 = tmp
-	dlog(name); 
+	dlog('Creature Name: ' .. name); 
 	if (name == nil) then
 		error('NO Name found! Name must be followed by a CR ie: "Sea turtle CR 1/8"'); 
 	else
@@ -910,12 +910,9 @@ function parsePreliminary(creature,data,ldata)
 	creature.name = trim(name); 
 
 	-- parse CR
-	dlog(tmp2); 
 	tmp = tmp2:reverse():match('%d/%d');
-	dlog(tostring(tmp)); 
 	if nil == tmp then
 		tmp = tmp2:reverse():match('%d+');
-		dlog('dose ' .. tostring(tmp)); 
 	end
 	if (nil == tmp) then
 		cr = 0;
@@ -936,8 +933,8 @@ function parsePreliminary(creature,data,ldata)
 	senses = trim(getValueByName('Senses',tmp,{})); 
 	creature.init = getBonusNumber(init,0);
 	creature.senses = senses; 
-	creLog('Init ' .. tostring(creature.init),5); 
-	creLog('Senses ' .. tostring(creature.senses),5);
+	creLog('parsePreliminary: Init ' .. tostring(creature.init),5); 
+	creLog('parsePreliminary: Senses ' .. tostring(creature.senses),5);
 
 	-- parse Type, Alignment, currently on the same line as size
 	-- TODO parse out class levels, for NPCs and a bunch of monster codex entries
@@ -1595,12 +1592,12 @@ function parseEcology(creature,data)
 			or line:match('Treasure') then
 				-- skip
 			else
-				dlog('VALID!! ##'.. i); 
+				creLog('parseEcology: VALID ECOLOGY LINE ##'.. i,4); 
 				extra = extra .. '<p>' .. line .. '</p>'; 
 			end
 		end
 		creature.ecoinfo = extra;
-		dlog(extra); 
+		creLog('parseEcology: Ecology text: ' .. extra,4); 
 	end
 
 end
@@ -1714,21 +1711,20 @@ function dropIter(atkline)
 	local atkName,a,b,c,d,mod,newmod; 
 	for k,v in pairs(volleys) do
 		for ke,va in pairs(v) do
-			atkName = va:match('%a+');
+			atkName = va:match('[%a%s]+');
 			a,b = va:find(atkName);
 			--c,d = va:find('[^%a%s]+',b); 
-			dlog(atkName); 
+			creLog('dropIter: Dropping Iteratives for: ' .. atkName,3); 
 			c,d = va:find('[%+%-][%d]+',b); 
 			if (c ~= nil) then
 				d = va:find('%(',c); 
 				if (d ~= nil) then
 					mod = trim(va:sub(c,d-1));
 					newmod = getBonusNumber(va:sub(c,va:find('[/%s]',c)),1);
-					creLog(va .. a .. ', ' .. b .. ', ' .. c .. ', ' .. d .. ', ' .. mod .. ', ' .. newmod,3); 
+					creLog('dropIter: ' .. va .. ' ' .. a .. ' ' .. b .. ' ' .. c .. ' ' .. d .. ' ' .. mod .. ' ' .. newmod,3); 
 					va = va:gsub(escMagic(mod),newmod); 
 					-- strip multiple attacks
 					a = va:match('%d+'); 
-					dlog('after strip a: ' .. a); 
 					c,d = va:find(a); 
 					if c == 1 then
 						va = trim(va:sub(d+1)); 
@@ -1736,7 +1732,7 @@ function dropIter(atkline)
 				end
 			end
 			volleys[k][ke] = va; 
-			creLog('dropIter (dropping iteratives) : ' .. tostring(va),3); 
+			creLog('dropIter: (dropping iteratives result) : ' .. tostring(va),3); 
 		end
 	end
 
@@ -1932,7 +1928,7 @@ function getParenSafeTerm(strLine, start, fin, termChars)
 	if inParen <= 0 then
 		return fin; 
 	end
-	creLog("in parens for " .. strLine .. " openparens: " .. inParen,5);
+	creLog("getParenSafeTerm: in parens for " .. strLine .. " openparens: " .. inParen,5);
 	closeLoc = strLine:find(')',start);
 	fin = #strLine;
 	if closeLoc == -1 then
