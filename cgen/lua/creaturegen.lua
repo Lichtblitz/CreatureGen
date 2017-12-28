@@ -5,8 +5,7 @@
 
 	Licensed under the GPL Version 3 license.
 	http://www.gnu.org/licenses/gpl.html
-	This script is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
+	This script is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
 	(at your option) any later version.
 
@@ -159,6 +158,7 @@ end
 function populate(creBase,creData)
 	local creature = creData.creature; 
 	local creList = creBase.getChildren(); 
+	local libAvail = false
 	-- creData -> log, creature -> creature_data
 	-- (str name, ln databasenode)
 	-- initial population has name (X this is no longer true in 3.2)
@@ -264,7 +264,12 @@ function populate(creBase,creData)
 	-- organization
 	creList.organization.setValue(creature.organization); 
 	-- check library link
-	checkLib(); 
+	libAvail = checkLib(); 
+	if libAvail then
+		dlog('Spell library: "' .. fields.spelllib .. '" detected as loaded and available'); 
+	else
+		addWarn('Spell library: "' .. fields.spelllib .. '" is not loaded or not available, spells will not be populated'); 
+	end
 	-- spells
 	popSpells(creBase,creData); 
 
@@ -279,6 +284,8 @@ end
 
 --[[
 	Checks if our sync'd library is loaded. If it is not, warn the user.
+
+	TRUE if library loaded, FALSE otherwise
 ]]--
 function checkLib()
 	local modules, minfo;
@@ -287,9 +294,9 @@ function checkLib()
 	minfo = Module.getModuleInfo(fields.spelllib); 
 
 	if minfo and minfo['loaded'] == true then
-		dlog('Spell library: "' .. fields.spelllib .. '" detected as loaded and available'); 
+		return true; 
 	else
-		addWarn('Spell library: "' .. fields.spelllib .. '" is not loaded or not available, spells will not be populated'); 
+		return false; 
 	end
 end
 
@@ -307,7 +314,7 @@ function popSpells(creBase, creData)
 		for k,v in pairs(creature.spells) do
 			casterType = k;
 			-- we don't do spell like abilities in this pass
-			if not casterType:match('Spell%-Like') then
+			if casterType:match('Prepared') or casterType:match('Known') then
 				creLog('popSpells: caster ->> ' .. casterType,3); 
 				casterNode = spellList.createChild('id%-' .. string.format('%05d',cnt));
 				casterNode.createChild('label','string'); 
@@ -358,9 +365,14 @@ end
 ]]--
 function addSpellCantripOrison(creData,spellTypeBaseNode,casterNode,casterType,spellType,idcarry)
 	local creature = creData.creature; 
+	local spellsPerLevel = getSpellsPerLevel(creData,spellTypeNode,casterType,spellType);
+	local availZero; 
 
-	casterNode.createChild('availablelevel0','number'); 
-	casterNode.getChildren().availablelevel0.setValue(#creature.spells[casterType][spellType]); 
+	availZero = casterNode.createChild('availablelevel0','number'); 
+	if availZero then
+		--creLog('addSpellCantripOrison: ' .. casterType .. ' ' .. spellType .. ' #-to-add: ' .. #creature.spells[casterType][spellType] .. ' prior: ' .. availZero.getValue()); 
+		casterNode.getChildren().availablelevel0.setValue(availZero.getValue()+spellsPerLevel); 
+	end
 	tmp = spellTypeBaseNode.createChild('level0'); 
 	tmp.createChild('level','number');
 	tmp.createChild('maxprepared','number');
@@ -369,9 +381,10 @@ function addSpellCantripOrison(creData,spellTypeBaseNode,casterNode,casterType,s
 	spellTypeNode = tmp.createChild('spells'); 
 	tmp = tmp.getChildren();
 	tmp.level.setValue(0);
-	tmp.maxprepared.setValue(#creature.spells[casterType][spellType]); 
+	tmp.maxprepared.setValue(availZero.getValue()); 
 	tmp.totalcast.setValue(0);
-	tmp.totalprepared.setValue(#creature.spells[casterType][spellType]); 
+	tmp.totalprepared.setValue(availZero.getValue()); 
+	creLog("addSpellCantripOrison: max prepared for " .. spellType .. ' : ' .. tmp.maxprepared.getValue(),4); 
 	return popSpellTypeList(creData,spellTypeNode,casterType,spellType,idcarry); 
 end
 
@@ -380,9 +393,11 @@ end
 ]]--
 function addSpellLevel(creData,spellTypeBaseNode,casterNode,casterType,spellType,level,idcarry)
 	local creature = creData.creature; 
+	local spellsPerLevel = getSpellsPerLevel(creData,spellTypeNode,casterType,spellType);
+	local rc; 
 
 	casterNode.createChild('availablelevel' .. tostring(level),'number'); 
-	casterNode.getChildren()['availablelevel' .. tostring(level)].setValue(getSpellsPerLevel(creData,spellTypeNode,casterType,spellType)); 
+	casterNode.getChildren()['availablelevel' .. tostring(level)].setValue(spellsPerLevel); 
 
 	tmp = spellTypeBaseNode.createChild('level' .. tostring(level)); 
 	tmp.createChild('level','number');
@@ -392,19 +407,11 @@ function addSpellLevel(creData,spellTypeBaseNode,casterNode,casterType,spellType
 	spellTypeNode = tmp.createChild('spells'); 
 	tmp = tmp.getChildren();
 	tmp.level.setValue(level);
-	tmp.maxprepared.setValue(#creature.spells[casterType][spellType]); 
-
-	if casterType:match('Spells Known') then
-		rc = spellType:find('%('); 
-		rc = spellType:sub(rc);
-		rc = getBonusNumber(rc); 
-		if tmp.maxprepared.getValue() then
-			casterNode.getChildren()['availablelevel' .. tostring(level)].setValue(rc); 
-		end
-	end
+	tmp.maxprepared.setValue(spellsPerLevel); 
 
 	tmp.totalcast.setValue(0);
-	tmp.totalprepared.setValue(#creature.spells[casterType][spellType]); 
+	tmp.totalprepared.setValue(spellsPerLevel); 
+
 	return popSpellTypeList(creData,spellTypeNode,casterType,spellType,idcarry); 
 end
 
@@ -417,11 +424,12 @@ function popSpellLikeAb(creBase, creData, idcarry)
 	local creature = creData.creature; 
 	local creList,spellList,casterNode,spellTypeNode,spellTypeBaseNode,alloLevel,tmp,rc; 
 	local casterType,spellType;
-	local cnt = idcarry; 
+	local cnt; 
 	local avail; 
 	local sidcarry = 1; 
 
-	if not idcary then idcarry = 1; end
+	if not idcarry then idcarry = 1; end
+	cnt = idcarry; 
 
 	--[[
 		Each spell type will already be a 'bucket' of the same pool of uses ie: 7/day SLA groups
@@ -441,8 +449,9 @@ function popSpellLikeAb(creBase, creData, idcarry)
 				casterNode = spellList.createChild('id%-' .. string.format('%05d',cnt));
 				casterNode.createChild('label','string'); 
 				casterNode.getChildren().label.setValue(casterType); 
-				casterNode.createChild('castertype','string'); 
-				casterNode.getChildren().castertype.setValue('spontaneous'); 
+				-- Spell like ability uses are not pooled!
+				--casterNode.createChild('castertype','string'); 
+				--casterNode.getChildren().castertype.setValue('spontaneous'); 
 				-- concentration + caster level checks
 				casterNode.createChild('cc').createChild('misc','number').setValue(creature.spells[casterType].concentration);
 				casterNode.createChild('cl','number').setValue(creature.spells[casterType].casterlevel);
@@ -451,9 +460,9 @@ function popSpellLikeAb(creBase, creData, idcarry)
 					spellType = k2; 
 					spellTypeBaseNode = casterNode.createChild('levels'); 
 					if spellType:match('Constant') then
-						sidcarry = addSpellCantripOrison(creData,spellTypeBaseNode,casterNode,casterType,spellType); 
+						sidcarry = addSpellCantripOrison(creData,spellTypeBaseNode,casterNode,casterType,spellType,sidcarry); 
 					elseif spellType:match('At will') then
-						sidcarry = addSpellCantripOrison(creData,spellTypeBaseNode,casterNode,casterType,spellType); 
+						sidcarry = addSpellCantripOrison(creData,spellTypeBaseNode,casterNode,casterType,spellType,sidcarry); 
 					elseif spellType:match('day') then
 						if next(avail) == nil then
 							-- we need to create a new overflow class!!
@@ -482,7 +491,39 @@ function popSpellLikeAb(creBase, creData, idcarry)
 						end
 						alloLevel = table.remove(avail,1);
 						addSpellLevel(creData,spellTypeBaseNode,casterNode,casterType,spellType,alloLevel); 
+					elseif spellType:match('%d+ PE') then
+						if next(avail) == nil then
+							-- we need to create a new overflow class!!
+							error('OVERFLOW on spell-like abilities currently unhandled'); 
+						end
+						alloLevel = table.remove(avail,1);
+						addSpellLevel(creData,spellTypeBaseNode,casterNode,casterType,spellType,alloLevel); 
 
+					end
+				end
+			elseif casterType:match('Psychic Magic') then
+				creLog('popSpellLikeAb: (Psychic Magic) SLA caster ->> ' .. casterType,3); 
+				casterNode = spellList.createChild('id%-' .. string.format('%05d',cnt));
+				casterNode.createChild('label','string'); 
+				casterNode.getChildren().label.setValue(casterType); 
+				-- Psychic Magic is a pooled ability !
+				casterNode.createChild('castertype','string'); 
+				casterNode.getChildren().castertype.setValue('spontaneous'); 
+				-- concentration + caster level checks
+				casterNode.createChild('cc').createChild('misc','number').setValue(creature.spells[casterType].concentration);
+				casterNode.createChild('cl','number').setValue(creature.spells[casterType].casterlevel);
+				cnt = cnt + 1; 
+
+				for k2,v2 in pairs(creature.spells[casterType]) do
+					spellType = k2; 
+					spellTypeBaseNode = casterNode.createChild('levels'); 
+					if spellType:match('%d+ PE') then
+						if next(avail) == nil then
+							-- we need to create a new overflow class!!
+							error('OVERFLOW on spell-like abilities currently unhandled'); 
+						end
+						alloLevel = table.remove(avail,1);
+						addSpellLevel(creData,spellTypeBaseNode,casterNode,casterType,spellType,alloLevel); 
 					end
 				end
 			end
@@ -494,17 +535,49 @@ end
 
 --[[
 	Get spells per level for the given caster/spelltype by summing the
-	prepped spells.
+	prepped spells or uses.
 
 	NOTE: this assumes all slots are prepped as is typical of NPC blocks
 ]]--
 function getSpellsPerLevel(creData,spellTypeNode, casterType, spellType)
 	local creature = creData.creature; 
 	local spellCnt = 0;  
+	local rc; 
 
-	for k,v in pairs(creature.spells[casterType][spellType]) do
-		spellCnt = spellCnt + v.prepped; 
+
+	if casterType:match('Spells Known') then
+		-- we're directly given the number of available uses
+		rc = spellType:find('%('); 
+		rc = spellType:sub(rc); 
+		rc = getBonusNumber(rc); 
+		spellCnt = rc; 
+	elseif casterType:match('Psychic Magic') then
+		-- psychic magic is a pool, we're directly given the available uses
+		rc = spellType:find('%d+ PE'); 
+		rc = spellType:sub(rc); 
+		rc = getBonusNumber(rc); 
+		spellCnt = rc; 
+	else
+		for k,v in pairs(creature.spells[casterType][spellType]) do
+			if casterType:match('Spell%-Like') then 
+				-- spell likes are like prepped, but with uses
+				rc = spellType:find('%d+/'); 
+				if rc then
+					rc = spellType:sub(rc); 
+					rc = getBonusNumber(rc); 
+					spellCnt = spellCnt + rc; 
+				else
+					-- at-will/constants are 1 per spell
+					spellCnt = spellCnt + 1; 
+				end
+			else
+				-- vanilla prepped casters
+				spellCnt = spellCnt + v.prepped; 
+			end
+		end
 	end
+
+
 	return spellCnt; 
 end
 
@@ -514,20 +587,35 @@ end
 ]]--
 function popSpellTypeList(creData, spellTypeNode, casterType, spellType, idcarry)
 	local creature = creData.creature; 
-	local spellNode; 
-	local prefix; 
+	local spellNode,rc,prefix,preppedOverride; 
 	local cnt = 1; 
 	
 	if idcarry then
 		cnt = idcarry;
 	end
 
-	if casterType:match('Spell%-Like') then prefix = '(' ..spellType .. ') '; end
+	-- we want to have special name, and 'preped' conditions for SLAs
+	if casterType:match('Spell%-Like') then 
+		prefix = '(' ..spellType .. ') '; 
+		rc = spellType:find('%d+/'); 
+		-- this includes constant/at-will which are non-numeric
+		if rc then
+			rc = spellType:sub(rc); 
+			rc = getBonusNumber(rc); 
+			preppedOverride = rc; 
+		else
+		-- force At-Will and Constant abilitites to have 1 prepped in case
+		-- things like 'teleport (self plus 50lbs...)' is caught in num prepped.
+		-- this is find for normal uses as there's another number prior to it, in 
+		-- prepped formatSpellName we merely grab the first.
+			preppedOverride = 1; 
+		end
+	end
 
 	for k,v in pairs(creature.spells[casterType][spellType]) do
 		spellNode = spellTypeNode.createChild('id%-' .. string.format('%05d',cnt));
 		if prefix then v.name = prefix .. v.name; end
-		popSpellDetail(spellNode,v); 
+		popSpellDetail(spellNode,v,preppedOverride); 
 		cnt = cnt + 1; 
 	end
 
@@ -537,23 +625,72 @@ end
 --[[
 	Populates data for the actual spell iteself by hopefully linking to a library. 
 ]]--
-function popSpellDetail(spellNode, spellData)
-	local tmp; 
+function popSpellDetail(spellNode, spellData, preppedOverride)
+	local tmp,linked; 
 	spellNode.createChild('name','string');
 	spellNode.createChild('prepared','number');
 	--TODO more spell details pending DB link
 	tmp = spellNode.getChildren(); 
 	-- TODO allow meta name by adding in metas from the spell data
 	tmp.name.setValue(spellData.name); 
-	tmp.prepared.setValue(spellData.prepped); 
-	-- Library link
-	linkSpellLibrary(spellNode,spellData); 
-	creLog('popSpellDetail: populated: ' .. spellData.name,3); 
+	-- If we have a prepped override, our # of prepped spells comes from the
+	-- caster type or spell type rather than what was parsed out of the name.
+	if preppedOverride then
+		tmp.prepared.setValue(preppedOverride); 
+	else
+		tmp.prepared.setValue(spellData.prepped); 
+	end
+	-- Library link (We add retries by striping out meta-magics)
+	if checkLib() then
+		linked = linkSpellLibrary(spellNode,spellData); 
+		if linked then
+			creLog('popSpellDetail: populated: ' .. spellData.name .. ' #-prepped: ' .. tmp.prepared.getValue() .. ' prep-override? ' .. tostring(preppedOverride),3); 
+		else
+			-- if we could not find our spell, then look for meta names and strip them out, one at a time
+			local flg = true;
+			local safeLimit = 0; 
+			local metaName,metaMagics,varient
+			local other; 
+
+			-- re-clean the string from the raw
+			metaName = spellData.rawname; 
+			metaName = trim(metaName:gsub('%(.+%)','')); 
+			metaName = metaName:lower(); 
+			metaName = formatSuperSubScript(metaName); 
+			metaName,varient = formatSpellStrength(metaName); 
+			--metaName = fmtXmlName(proper); 
+			creLog('popSpellDetail: preparing metaName ' .. metaName,4); 
+
+			while flg and safeLimit <= 5 do
+				metaName,metamagics = formatMetaMagics(metaName,1); 
+				-- try with the new name; 
+				creLog('popSpellDetail: attempting another XML search with trimmed meta name: ' .. metaName,4); 
+				-- we format 'just in time' as we want spaces and other goodies to keep stripping metas
+				-- (we delmit by spaces which are stripped in getting the proper XML name)
+				spellData.propername = fmtXmlName(metaName); 
+				linked = linkSpellLibrary(spellNode,spellData); 
+				if linked then
+					flg = false;  
+				end
+				if metaMagics and #metaMagics == 0 then
+					flg = false; 
+				end
+				safeLimit = safeLimit + 1; 
+			end
+			if not linked then
+				addWarn('"' .. spellData.name .. '" cannot be found within spell library "' .. fields.spelllib .. '"'); 
+			else
+				creLog('popSpellDetail: populated ' .. spellData.name .. ' after a lookup retry was successful with ' .. metaName,3); 
+			end
+		end
+	end
 end
 
 --[[
 	Given the spell's DB node, and the complementary spell data,
 	look up in our spell library to try and fill in the details.
+
+	return TRUE if we could link it, FALSE otherwise
 ]]--
 function linkSpellLibrary(spellNode, spellData)
 	local minfo, xmlSpellName, libNode, tmp, tmpb; 
@@ -605,11 +742,12 @@ function linkSpellLibrary(spellNode, spellData)
 			end
 			-- Let SpellManager parse our spell
 			SpellManager.parseSpell(spellNode); 
+			return true; 
 		else
-			addWarn('"' .. spellData.name .. '" cannot be found within spell library "' .. fields.spelllib .. '"'); 
+			return false; 
 		end
 	end
-
+	return false; 
 end
 
 --[[
@@ -1228,6 +1366,7 @@ function parseSpells(creature,data)
 	--       -> CL/CC
 	--       -> known 0,1,2,3,4,5,6,7,8,9
 	formatSpells('Spell%-Like Abilities',creature,data); 
+	formatSpells('Psychic Magic',creature,data); 
 	formatSpells('Spells Known',creature,data); 
 	formatSpells('Spells Prepared',creature,data); 
 	formatSpells('Extracts Prepared',creature,data,1); 
@@ -1304,6 +1443,10 @@ end
 --[[
 	Format the spell name to extract super/sub scripts, DC, number prepared,
 	meta-magics etc...
+
+	WARN: the number 'preppared' may be incorrect as we simply grab a number in the spell name,
+	if there's a DC # combination, we extract that first however so we don't use it, but other things
+	such as 'teleportation less than 50 points...' will be caught up, especially for at-will abilities
 ]]--
 function formatSpellName(spellstr)
 	local spell = {};
@@ -1325,7 +1468,7 @@ function formatSpellName(spellstr)
 	else 
 		nprep = tonumber(nprep); 
 	end
-
+	
 	proper = trim(spellstr:gsub('%(.+%)',''))
 	proper = formatSuperSubScript(proper); 
 	proper,varient = formatSpellStrength(proper); 
@@ -1338,6 +1481,7 @@ function formatSpellName(spellstr)
 	--spell['meta'] = meta or '';
 	spell['propername'] = proper; 
 	spell['name'] = trim(spellstr); 
+	spell['rawname'] = spellstr; 
 	creLog('formatSpellName: ' .. spell.name .. ' parsed',4); 
 	return spell; 
 end
@@ -1350,7 +1494,7 @@ function formatSuperSubScript(str)
 	if not str then return; end
 	local retval = str; 
 	local cases = {'1st','2nd','3rd','4th','5th','6th','7th','8th','9th',
-		'UM','TG','UC','APG','MC','D','B','HA','*'}; 
+		'UM','TG','UC','APG','ACG','MC','D','B','HA','OA','M','MA','UI','UE','GMG','*'}; 
 	
 	for _,v in pairs(cases) do
 		if v == '' or str:sub(-v:len()) == v then
@@ -1386,9 +1530,19 @@ end
 	TODO have this be a library link
 	TODO there exists the case of multiple meta magics which is currently unhandled, we
 	should ideally return a table as our meta field.
+
+	the limit field allows us to only remove X meta-magics from first discovered before returning
+	our result. this is useful for spells that have meta-like names and we only want to find the 
+	meta without destroying the spell name
+
+	The following meta-magics are ommited due to similar names in spell titles:
+
+	shadowed
 ]]--
-function formatMetaMagics(spellName)
-	local retval,retval2;
+function formatMetaMagics(spellName,limit)
+	local retval = spellName; 
+	local retval2 = {};
+	local spellparts; 
 	local metas = {
 		'aquatic',
 		'bouncing',
@@ -1424,13 +1578,12 @@ function formatMetaMagics(spellName)
 		'persistent',
 		'piercing',
 		'quickened',
-		'reach',
+		'reached',
 		'rimed',
 		'scarring',
 		'scouting',
 		'seeking',
 		'selective',
-		'shadow',
 		'sickening',
 		'silent',
 		'snuffing',
@@ -1456,14 +1609,43 @@ function formatMetaMagics(spellName)
 		'yai-mimiced'
 	}
 
-	retval = spellName; 
-	for _,v in pairs(metas) do
-		if spellName:find(v) then
-			retval = trim(retval:gsub(v,'')); 	
-			retval2 = v; 
+	spellparts = strsplit(spellName,'%s'); 
+	for _,v in pairs(spellparts) do
+		for _,v2 in pairs(metas) do
+			if v:find(v2) then
+				table.insert(retval2,v2); 
+				-- remove it from the return value
+				local a,b = retval:find(v2);
+				retval = retval:sub(0,a-1) .. retval:sub(b+1);
+
+				if limit and #retval2 >= limit then
+					break;
+				end
+			end
+		end
+		if limit and #retval2 >= limit then
 			break; 
 		end
 	end
+
+--[[
+	for _,v in pairs(metas) do
+		if spellName:find(v) then
+			retval = trim(retval:gsub(v,'')); 	
+			table.insert(retval2,v); 
+			if limit and #retval2 <= limit then
+				break;
+			end
+		end
+	end
+]]--
+
+	local logStr = "formatMetaMagics: Metas found in '" .. spellName .. "' : "; 
+	for k,v in pairs (retval2) do
+		logStr = logStr .. v .. ' '; 
+	end
+	creLog(logStr,4); 
+	creLog("formatMetaMagics: trimmed name: " .. retval,4); 
 
 	return retval,retval2; 
 end
@@ -2051,7 +2233,15 @@ function fmtXmlName(str)
 	if not str then return; end
 	str = str:gsub('\'','');
 	str = str:gsub('%s','');
+	str = str:gsub(',','');
+	str = str:gsub('\\','');
 	str = str:gsub('/','');
+	str = str:gsub(';','');
+	str = str:gsub('%(','');
+	str = str:gsub('%)','');
+	str = str:gsub('%.','');
+	str = str:gsub('+','');
+	str = str:gsub('-','');
 	str = str:lower(); 
 	return str; 
 end
