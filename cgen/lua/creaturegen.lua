@@ -412,6 +412,15 @@ function addSpellLevel(creData,spellTypeBaseNode,casterNode,casterType,spellType
 	tmp.totalcast.setValue(0);
 	tmp.totalprepared.setValue(spellsPerLevel); 
 
+	if casterType:match('Psychic Magic') then
+		tmp = casterNode.getChildren(); 
+		-- we stack them with other pools as we group seperate 'PE' pools
+		-- by level, but are only given the option for one large PE pool at
+		-- the caster, visible to the player.
+		tmp.points.setValue(tmp.points.getValue() + spellsPerLevel); 
+		tmp.pointsused.setValue(0); 
+	end
+
 	return popSpellTypeList(creData,spellTypeNode,casterType,spellType,idcarry); 
 end
 
@@ -507,8 +516,11 @@ function popSpellLikeAb(creBase, creData, idcarry)
 				casterNode.createChild('label','string'); 
 				casterNode.getChildren().label.setValue(casterType); 
 				-- Psychic Magic is a pooled ability !
+				-- Use the Psionic points caster type
 				casterNode.createChild('castertype','string'); 
-				casterNode.getChildren().castertype.setValue('spontaneous'); 
+				casterNode.getChildren().castertype.setValue('points'); 
+				casterNode.createChild('points','number'); 
+				casterNode.createChild('pointsused','number'); 
 				-- concentration + caster level checks
 				casterNode.createChild('cc').createChild('misc','number').setValue(creature.spells[casterType].concentration);
 				casterNode.createChild('cl','number').setValue(creature.spells[casterType].casterlevel);
@@ -615,7 +627,7 @@ function popSpellTypeList(creData, spellTypeNode, casterType, spellType, idcarry
 	for k,v in pairs(creature.spells[casterType][spellType]) do
 		spellNode = spellTypeNode.createChild('id%-' .. string.format('%05d',cnt));
 		if prefix then v.name = prefix .. v.name; end
-		popSpellDetail(spellNode,v,preppedOverride); 
+		popSpellDetail(spellNode,v,casterType,preppedOverride); 
 		cnt = cnt + 1; 
 	end
 
@@ -625,13 +637,11 @@ end
 --[[
 	Populates data for the actual spell iteself by hopefully linking to a library. 
 ]]--
-function popSpellDetail(spellNode, spellData, preppedOverride)
+function popSpellDetail(spellNode, spellData, casterType, preppedOverride)
 	local tmp,linked; 
 	spellNode.createChild('name','string');
 	spellNode.createChild('prepared','number');
-	--TODO more spell details pending DB link
 	tmp = spellNode.getChildren(); 
-	-- TODO allow meta name by adding in metas from the spell data
 	tmp.name.setValue(spellData.name); 
 	-- If we have a prepped override, our # of prepped spells comes from the
 	-- caster type or spell type rather than what was parsed out of the name.
@@ -640,6 +650,15 @@ function popSpellDetail(spellNode, spellData, preppedOverride)
 	else
 		tmp.prepared.setValue(spellData.prepped); 
 	end
+	-- If we're a Psychic Magic user, we need to set our cost
+	if casterType:match('Psychic Magic') then
+		-- find the PE #
+		-- WARN, THIS IS A BAD HACK, we grab the first number after the paren!!
+		local pe = getBonusNumber(getValueBeforeName('PE',spellData.name,{}),0); 
+		spellNode.createChild('cost','number').setValue(pe); 
+	end
+
+
 	-- Library link (We add retries by striping out meta-magics)
 	if checkLib() then
 		linked = linkSpellLibrary(spellNode,spellData); 
@@ -655,14 +674,14 @@ function popSpellDetail(spellNode, spellData, preppedOverride)
 			-- re-clean the string from the raw
 			metaName = spellData.rawname; 
 			metaName = trim(metaName:gsub('%(.+%)','')); 
-			metaName = metaName:lower(); 
 			metaName = formatSuperSubScript(metaName); 
 			metaName,varient = formatSpellStrength(metaName); 
+			metaName = metaName:lower(); 
 			--metaName = fmtXmlName(proper); 
 			creLog('popSpellDetail: preparing metaName ' .. metaName,4); 
 
 			while flg and safeLimit <= 5 do
-				metaName,metamagics = formatMetaMagics(metaName,1); 
+				metaName,metaMagics = formatMetaMagics(metaName,1); 
 				-- try with the new name; 
 				creLog('popSpellDetail: attempting another XML search with trimmed meta name: ' .. metaName,4); 
 				-- we format 'just in time' as we want spaces and other goodies to keep stripping metas
@@ -672,7 +691,7 @@ function popSpellDetail(spellNode, spellData, preppedOverride)
 				if linked then
 					flg = false;  
 				end
-				if metaMagics and #metaMagics == 0 then
+				if not metaMagics or (metaMagics and #metaMagics) == 0 then
 					flg = false; 
 				end
 				safeLimit = safeLimit + 1; 
@@ -1494,11 +1513,12 @@ function formatSuperSubScript(str)
 	if not str then return; end
 	local retval = str; 
 	local cases = {'1st','2nd','3rd','4th','5th','6th','7th','8th','9th',
-		'UM','TG','UC','APG','ACG','MC','D','B','HA','OA','M','MA','UI','UE','GMG','*'}; 
+		'CR','UM','TG','UC','APG','ACG','MC','HA','OA','MA','UI','UE','GMG','*','B2','B3','B4','B5','B6','D'}; 
 	
 	for _,v in pairs(cases) do
-		if v == '' or str:sub(-v:len()) == v then
-			retval = trim(str:gsub(v,'')); 
+		if retval:sub(-v:len()) == v then
+			creLog("formatSuperSubScript: removing subscript " .. v .. ' from raw spellName ' .. retval,5); 
+			retval = trim(retval:gsub(v,'')); 
 		end
 	end
 
@@ -1517,6 +1537,7 @@ function formatSpellStrength(spellName)
 	for _,v in pairs(strengths) do
 		if spellName:find(v) then
 			retval = trim(retval:gsub(v,'')); 	
+			creLog("formatSuperSubScript: removing+storing strength varient " .. v .. ' from raw spellName ' .. retval,5); 
 			retval2 = v; 
 			break; 
 		end
@@ -1537,7 +1558,7 @@ end
 
 	The following meta-magics are ommited due to similar names in spell titles:
 
-	shadowed
+	None, =)
 ]]--
 function formatMetaMagics(spellName,limit)
 	local retval = spellName; 
@@ -1556,6 +1577,7 @@ function formatMetaMagics(spellName,limit)
 		'disruptive',
 		'echoing',
 		'eclipsed',
+		'eclipsing', -- alias to ^
 		'ectoplasmic',
 		'elemental',
 		'empowered',
@@ -1571,6 +1593,7 @@ function formatMetaMagics(spellName,limit)
 		'intensified',
 		'intuitive',
 		'jinxed',
+		'jinxing', -- alias to ^
 		'lingering',
 		'logical',
 		'maximized',
@@ -1578,17 +1601,23 @@ function formatMetaMagics(spellName,limit)
 		'persistent',
 		'piercing',
 		'quickened',
-		'reached',
+		'reach',
+		'reached', -- alias to ^
+		'reaching', -- alias to ^
 		'rimed',
 		'scarring',
 		'scouting',
 		'seeking',
 		'selective',
+		'shadow grasp',
+		'shadow graspng', -- alias to ^
+		'graspng', -- alias to ^
 		'sickening',
 		'silent',
 		'snuffing',
 		'solar',
-		'solid',
+		'solid shadow',
+		'solid', -- alias to ^
 		'stilled',
 		'studied',
 		'stylized',
@@ -1627,18 +1656,6 @@ function formatMetaMagics(spellName,limit)
 			break; 
 		end
 	end
-
---[[
-	for _,v in pairs(metas) do
-		if spellName:find(v) then
-			retval = trim(retval:gsub(v,'')); 	
-			table.insert(retval2,v); 
-			if limit and #retval2 <= limit then
-				break;
-			end
-		end
-	end
-]]--
 
 	local logStr = "formatMetaMagics: Metas found in '" .. spellName .. "' : "; 
 	for k,v in pairs (retval2) do
@@ -2079,6 +2096,39 @@ function getValueByName(strName, strLine, termChars)
 	creLog('getValueByName: name ' .. strName .. ' value: ' .. tostring(retval),5); 
 	return retval; 
 end
+
+--[[
+	Given a line, name and terminators, return the value. Value is
+	the trimmed text before the name and after the terminator
+]]--
+function getValueBeforeName(strName, strLine, termChars)
+	if (not strLine or not strName or not termChars) then return nil end;
+	local retval;
+	local loc = -1; 
+	local locTerm = 1;
+
+	creLog("getValueBeforeName: " .. strName .. ' ' .. tostring(termChars) .. ' ' .. strLine,5); 
+	loc = strLine:find(strName);
+	if loc then
+		for i = 1, #termChars do
+			local tmp = strLine:find(termChars[i],loc);
+			if ((tmp ~= nil) and (tmp > locTerm)) then
+				locTerm = tmp;
+			end
+		end
+		if (locTerm < loc) then
+			loc = getParenSafeTerm(strLine,locTerm,loc,termChars);
+			retval = strLine:sub(locTerm,loc); 
+			creLog('getValueBeforeName: name ' .. strName .. ' f-start ' .. locTerm .. ' f-fin ' .. loc-1,5); 
+		end
+	else
+		creLog('getValueBeforeName: name ' .. strName .. ' not found in ' .. strLine,4); 
+	end
+
+	creLog('getValueBeforeName: name ' .. strName .. ' value: ' .. tostring(retval),5); 
+	return retval; 
+end
+
 
 --[[ 
 	Get the location of the close terminator that is paren safe. If there
