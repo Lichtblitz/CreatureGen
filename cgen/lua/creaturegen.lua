@@ -559,16 +559,31 @@ function getSpellsPerLevel(creData,spellTypeNode, casterType, spellType)
 
 	if casterType:match('Spells Known') then
 		-- we're directly given the number of available uses
-		rc = spellType:find('%('); 
-		rc = spellType:sub(rc); 
-		rc = getBonusNumber(rc); 
-		spellCnt = rc; 
+		if spellType:lower():match('at will') then
+			spellCnt = #creature.spells[casterType][spellType]; 
+		else
+			rc = spellType:find('%('); 
+			if rc then
+				rc = spellType:sub(rc); 
+				rc = getBonusNumber(rc); 
+				spellCnt = rc; 
+			else
+				-- PRD's Vampire just lists 0 rather than 0 (at will)
+				spellCnt = #creature.spells[casterType][spellType]; 
+				addWarn("Could not get spell count for '" .. casterType .. "' of level/type '" .. spellType .. "'" .. ' assuming ' .. spellCnt); 
+			end
+		end
 	elseif casterType:match('Psychic Magic') then
 		-- psychic magic is a pool, we're directly given the available uses
 		rc = spellType:find('%d+ PE'); 
-		rc = spellType:sub(rc); 
-		rc = getBonusNumber(rc); 
-		spellCnt = rc; 
+		if rc then
+			rc = spellType:sub(rc); 
+			rc = getBonusNumber(rc); 
+			spellCnt = rc; 
+		else 
+			spellCnt = getBonusNumber(spellType); 
+			addWarn("Could not find PE pool size for '" .. casterType .. "' of level/type '" .. spellType .. "'" .. ' assuming ' .. spellCnt); 
+		end
 	else
 		for k,v in pairs(creature.spells[casterType][spellType]) do
 			if casterType:match('Spell%-Like') then 
