@@ -1280,9 +1280,9 @@ function parseDefense(creature,data)
 	if imm then creature.sqline = creature.sqline .. 'Immune ' .. trim(imm):gsub(';','') .. '; '; end
 	if regen then creature.sqline = creature.sqline .. ' regeneration ' .. trim(regen):gsub(';','') .. '; ' ; end
 	if fh then creature.sqline = creature.sqline .. ' fast healing ' .. trim(fh):gsub(';','') .. '; ' ; end
-	if defab then creature.sqline = creature.sqline .. trim(defab):gsub(';','') .. '; ' ; end
+	if defab then creature.sqline = creature.sqline .. 'Defensive Abilities ' ..trim(defab):gsub(';','') .. '; ' ; end
 	if sq then 
-		creature.sqline = creature.sqline .. trim(sq); 
+		creature.sqline = creature.sqline .. 'Special Qualities ' .. trim(sq); 
 	elseif sqline ~= '' then
 		creature.sqline = creature.sqline:sub(1,-3); 
 	end
@@ -1299,18 +1299,6 @@ function parseOffense(creature,data)
 	local sa,spd,spc,rch,spcrchline,dfspc; 
 	local tmp; 
 
-	-- parse Special Attacks
-	tmp = getLineByName('Special Attacks',data,creature.mark_offense,(nil == creature.mark_tactics and #data or creature.mark_tactics)); 
-	if tmp then
-		sa = getValueByName('Special Attacks',tmp,{}); 
-		-- TODO add to creature.spells the special abilities of the attacks
-	else
-		tmp = getLineByName('Special Attack',data,creature.mark_offense,(nil == creature.mark_tactics and #data or creature.mark_tactics)); 
-		if tmp then
-			sa = getValueByName('Special Attack',tmp,{}); 
-		end
-	end
-	if sa then creature.sa = trim(sa); end
 
 	-- parse Speed
 	tmp = getLineByName('Speed',data,creature.mark_offense,(nil == creature.mark_tactics and #data or creature.mark_tactics)); 
@@ -1381,8 +1369,36 @@ function parseOffense(creature,data)
 		end
 	end
 
+	-- parse special attacks
+	if (not creature.error) then
+		dlog('ok doing special attacks',self); 
+		err, errmsg = pcall(parseSpecialAttacks,creature,data); 
+		if (not err) then
+			addError('Error while parsing special attacks: ' .. errmsg); 
+			creature.error = true; 
+		end
+	end
+
+
 	-- parse spells
 	parseSpells(creature,data); 
+end
+
+function parseSpecialAttacks(creature, data)
+	local tmp; 
+
+	-- parse Special Attacks OLD
+	tmp = getLineByName('Special Attacks',data,creature.mark_offense,(nil == creature.mark_tactics and #data or creature.mark_tactics)); 
+	if tmp then
+		sa = getValueByName('Special Attacks',tmp,{}); 
+		-- TODO add to creature.spells the special abilities of the attacks
+	else
+		tmp = getLineByName('Special Attack',data,creature.mark_offense,(nil == creature.mark_tactics and #data or creature.mark_tactics)); 
+		if tmp then
+			sa = getValueByName('Special Attack',tmp,{}); 
+		end
+	end
+	if sa then creature.sa = trim(sa); end
 end
 
 --[[
