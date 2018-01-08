@@ -1385,7 +1385,7 @@ function parseOffense(creature,data)
 end
 
 function parseSpecialAttacks(creature, data)
-	local tmp; 
+	local tmp,sa; 
 
 	-- parse Special Attacks OLD
 	tmp = getLineByName('Special Attacks',data,creature.mark_offense,(nil == creature.mark_tactics and #data or creature.mark_tactics)); 

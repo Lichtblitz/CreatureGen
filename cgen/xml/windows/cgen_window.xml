@@ -30,9 +30,11 @@
 					local creList, creData, err, errmsg; 
 					local cgen_window = Interface.findWindow("cgen_window","cgen");
 					local cgen_node = cgen_window.getDatabaseNode();
+
+					creData = nil; 
 					if (nil ~= cgen_node) then
 						local nodes = cgen_node.getChildren(); 
-						local creData = CreatureGen.genesis(nodes["input"].getValue()); 
+						creData = CreatureGen.genesis(nodes["input"].getValue()); 
 						cgen_node.createChild('lograw','formattedtext'); 
 						local lnode = cgen_node.getChild('lograw');
 						lnode.setValue(creData['log']); 
