@@ -314,12 +314,12 @@ function popSpells(creBase, creData)
 		for k,v in pairs(creature.spells) do
 			casterType = k;
 			-- we don't do spell like abilities in this pass
-			if casterType:match('Prepared') or casterType:match('Known') then
+			if casterType:match('prepared') or casterType:match('known') then
 				creLog('popSpells: caster ->> ' .. casterType,3); 
 				casterNode = spellList.createChild('id%-' .. string.format('%05d',cnt));
 				casterNode.createChild('label','string'); 
 				casterNode.getChildren().label.setValue(casterType); 
-				if casterType:match('Spells Known') then
+				if casterType:match('spells known') then
 					casterNode.createChild('castertype','string'); 
 					casterNode.getChildren().castertype.setValue('spontaneous'); 
 				end
@@ -412,7 +412,7 @@ function addSpellLevel(creData,spellTypeBaseNode,casterNode,casterType,spellType
 	tmp.totalcast.setValue(0);
 	tmp.totalprepared.setValue(spellsPerLevel); 
 
-	if casterType:match('Psychic Magic') then
+	if casterType:match('psychic magic') then
 		tmp = casterNode.getChildren(); 
 		-- we stack them with other pools as we group seperate 'PE' pools
 		-- by level, but are only given the option for one large PE pool at
@@ -453,7 +453,7 @@ function popSpellLikeAb(creBase, creData, idcarry)
 			-- each new caster has their own allocation
 			avail = {1,2,3,4,5,6,7,8,9}; 
 			-- we only care about SLAs in this pass
-			if casterType:match('Spell%-Like') then
+			if casterType:match('spell%-like') then
 				creLog('popSpellLikeAb: SLA caster ->> ' .. casterType,3); 
 				casterNode = spellList.createChild('id%-' .. string.format('%05d',cnt));
 				casterNode.createChild('label','string'); 
@@ -468,9 +468,9 @@ function popSpellLikeAb(creBase, creData, idcarry)
 				for k2,v2 in pairs(creature.spells[casterType]) do
 					spellType = k2; 
 					spellTypeBaseNode = casterNode.createChild('levels'); 
-					if spellType:match('Constant') then
+					if spellType:match('constant') then
 						sidcarry = addSpellCantripOrison(creData,spellTypeBaseNode,casterNode,casterType,spellType,sidcarry); 
-					elseif spellType:match('At will') then
+					elseif spellType:match('at will') then
 						sidcarry = addSpellCantripOrison(creData,spellTypeBaseNode,casterNode,casterType,spellType,sidcarry); 
 					elseif spellType:match('day') then
 						if next(avail) == nil then
@@ -500,7 +500,7 @@ function popSpellLikeAb(creBase, creData, idcarry)
 						end
 						alloLevel = table.remove(avail,1);
 						addSpellLevel(creData,spellTypeBaseNode,casterNode,casterType,spellType,alloLevel); 
-					elseif spellType:match('%d+ PE') then
+					elseif spellType:match('%d+ pe') then
 						if next(avail) == nil then
 							-- we need to create a new overflow class!!
 							error('OVERFLOW on spell-like abilities currently unhandled'); 
@@ -510,7 +510,7 @@ function popSpellLikeAb(creBase, creData, idcarry)
 
 					end
 				end
-			elseif casterType:match('Psychic Magic') then
+			elseif casterType:match('psychic magic') then
 				creLog('popSpellLikeAb: (Psychic Magic) SLA caster ->> ' .. casterType,3); 
 				casterNode = spellList.createChild('id%-' .. string.format('%05d',cnt));
 				casterNode.createChild('label','string'); 
@@ -529,7 +529,7 @@ function popSpellLikeAb(creBase, creData, idcarry)
 				for k2,v2 in pairs(creature.spells[casterType]) do
 					spellType = k2; 
 					spellTypeBaseNode = casterNode.createChild('levels'); 
-					if spellType:match('%d+ PE') then
+					if spellType:match('%d+ pe') then
 						if next(avail) == nil then
 							-- we need to create a new overflow class!!
 							error('OVERFLOW on spell-like abilities currently unhandled'); 
@@ -557,9 +557,9 @@ function getSpellsPerLevel(creData,spellTypeNode, casterType, spellType)
 	local rc; 
 
 
-	if casterType:match('Spells Known') then
+	if casterType:match('spells known') then
 		-- we're directly given the number of available uses
-		if spellType:lower():match('at will') then
+		if spellType:match('at will') then
 			spellCnt = #creature.spells[casterType][spellType]; 
 		else
 			rc = spellType:find('%('); 
@@ -573,9 +573,9 @@ function getSpellsPerLevel(creData,spellTypeNode, casterType, spellType)
 				addWarn("Could not get spell count for '" .. casterType .. "' of level/type '" .. spellType .. "'" .. ' assuming ' .. spellCnt); 
 			end
 		end
-	elseif casterType:match('Psychic Magic') then
+	elseif casterType:match('psychic magic') then
 		-- psychic magic is a pool, we're directly given the available uses
-		rc = spellType:find('%d+ PE'); 
+		rc = spellType:find('%d+ pe'); 
 		if rc then
 			rc = spellType:sub(rc); 
 			rc = getBonusNumber(rc); 
@@ -586,7 +586,7 @@ function getSpellsPerLevel(creData,spellTypeNode, casterType, spellType)
 		end
 	else
 		for k,v in pairs(creature.spells[casterType][spellType]) do
-			if casterType:match('Spell%-Like') then 
+			if casterType:match('spell%-like') then 
 				-- spell likes are like prepped, but with uses
 				rc = spellType:find('%d+/'); 
 				if rc then
@@ -622,7 +622,7 @@ function popSpellTypeList(creData, spellTypeNode, casterType, spellType, idcarry
 	end
 
 	-- we want to have special name, and 'preped' conditions for SLAs
-	if casterType:match('Spell%-Like') then 
+	if casterType:match('spell%-like') then 
 		prefix = '(' ..spellType .. ') '; 
 		rc = spellType:find('%d+/'); 
 		-- this includes constant/at-will which are non-numeric
@@ -666,7 +666,7 @@ function popSpellDetail(spellNode, spellData, casterType, preppedOverride)
 		tmp.prepared.setValue(spellData.prepped); 
 	end
 	-- If we're a Psychic Magic user, we need to set our cost
-	if casterType:match('Psychic Magic') then
+	if casterType:match('psychic magic') then
 		-- find the PE #
 		-- WARN, THIS IS A BAD HACK, we grab the first number after the paren!!
 		local pe = getBonusNumber(getValueBeforeName('PE',spellData.name,{}),0); 
@@ -1457,6 +1457,7 @@ function formatSpells(typestr,creature,data,extra)
 				addWarn('No concentration bonus found for ' .. casterType); 
 				addWarn('No caster level found for ' .. casterType); 
 			end
+			casterType = casterType:lower(); 
 			if not spells[casterType] then spells[casterType] = {}; end
 			spells[casterType]['concentration'] = concentration;
 			spells[casterType]['casterlevel'] = casterLevel; 
@@ -1466,7 +1467,7 @@ function formatSpells(typestr,creature,data,extra)
 				a,b = data[i]:find('%-%-'); 
 				if a then
 					--dlog('a: ' .. a .. ' b: ' .. b); 
-					spellType = data[i]:sub(1,a-1); 
+					spellType = data[i]:sub(1,a-1):lower(); 
 					if not spells[casterType][spellType] then spells[casterType][spellType]={}; end
 					line = data[i]:sub(b+1);
 					tmp = strsplitparen(line,','); 
@@ -2285,11 +2286,11 @@ function escMagic(str)
 	str = str:gsub('%.','%%.'); 
 	str = str:gsub('%+','%%+'); 
 	str = str:gsub('%-','%%-'); 
-	str = str:gsub('%*)','%%*)'); 
-	str = str:gsub('%?)','%%?)'); 
-	str = str:gsub('%[)','%%[)'); 
-	str = str:gsub('%^)','%%^)'); 
-	str = str:gsub('%$)','%%$)'); 
+	str = str:gsub('%*','%%*'); 
+	str = str:gsub('%?','%%?'); 
+	str = str:gsub('%[','%%['); 
+	str = str:gsub('%^','%%^'); 
+	str = str:gsub('%$','%%$'); 
 	return str; 
 end
 
@@ -2304,6 +2305,16 @@ function stripTags(str)
 	str = str:gsub('</b>',''); 
 	str = str:gsub('<i>',''); 
 	str = str:gsub('</i>',''); 
+	str = str:gsub('<li>',''); 
+	str = str:gsub('</li>',''); 
+	str = str:gsub('<list>',''); 
+	str = str:gsub('</list>',''); 
+	str = str:gsub('<table>',''); 
+	str = str:gsub('</table>',''); 
+	str = str:gsub('<tr>',''); 
+	str = str:gsub('</tr>',''); 
+	str = str:gsub('<td>',''); 
+	str = str:gsub('</td>',''); 
 	return str; 
 end
 
