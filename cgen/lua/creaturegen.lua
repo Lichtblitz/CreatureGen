@@ -1521,6 +1521,7 @@ function formatSpellName(spellstr)
 	end
 	
 	proper = trim(spellstr:gsub('%(.+%)',''))
+	proper = trim(proper:gsub('%[.+%]',''))
 	proper = formatSuperSubScript(proper); 
 	proper,varient = formatSpellStrength(proper); 
 	--proper,meta = formatMetaMagics(proper); 
