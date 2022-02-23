@@ -683,14 +683,14 @@ function popSpellDetail(spellNode, spellData, casterType, preppedOverride)
       -- if we could not find our spell, then look for meta names and strip them out, one at a time
       local flg = true;
       local safeLimit = 0; 
-      local metaName,metaMagics,varient
+      local metaName,metaMagics,variant
       local other; 
 
       -- re-clean the string from the raw
       metaName = spellData.rawname; 
       metaName = trim(metaName:gsub('%(.+%)','')); 
       metaName = formatSuperSubScript(metaName); 
-      metaName,varient = formatSpellStrength(metaName); 
+      metaName,variant = formatSpellStrength(metaName); 
       metaName = metaName:lower(); 
       --metaName = fmtXmlName(proper); 
       creLog('popSpellDetail: preparing metaName ' .. metaName,4); 
@@ -729,7 +729,7 @@ end
 function linkSpellLibrary(spellNode, spellData)
   local minfo, xmlSpellName, libNode, tmp, tmpb; 
 
-  xmlSpellName = trim(spellData.propername:gsub('%s','')) .. spellData.varient; 
+  xmlSpellName = trim(spellData.propername:gsub('%s','')) .. spellData.variant; 
   xmlSpellName = xmlSpellName:lower(); 
   creLog('linkSpellLibrary: library XML spell name searched: "' .. xmlSpellName .. '"',4); 
 
@@ -1102,7 +1102,7 @@ function parsePreliminary(creature,data,ldata)
   tmp = getLineByName('Init',data,1,(nil == creature.mark_defense and #data or creature.mark_defense));
   init = trim(getValueByName('Init',tmp,termChars)); 
   senses = trim(getValueByName('Senses',tmp,{})); 
-  creature.init = getBonusNumber(init,0);
+  creature.init = tonumber(getBonusNumber(init,0));
   creature.senses = senses; 
   creLog('parsePreliminary: Init ' .. tostring(creature.init),5); 
   creLog('parsePreliminary: Senses ' .. tostring(creature.senses),5);
@@ -1174,20 +1174,21 @@ function parseDefense(creature,data)
   local ac,ff,tch,acline,isenseline; 
   local sr,dr,weak,resist,hard,imm,defab,sq,regen,fh; 
   local tmp; 
-  local termChars = {';'}; 
+  local termCharsStrict = {';', ',', '('}; 
+  local termCharsLenient = {';'}; 
 
   -- parse AC
   acline = getLineByName('AC',data,creature.mark_defense,(nil == creature.mark_offense and #data or creature.mark_offense));
   if not acline then
     error('No \'AC\' field found within defenses'); 
   end
-  ac = trim(getValueByName('AC',acline,termChars)); 
-  ff = trim(getValueByName('flat-footed',acline,termChars)); 
-  tch = trim(getValueByName('touch',acline,termChars)); 
+  ac = trim(getValueByName('AC',acline,termCharsStrict)); 
+  ff = trim(getValueByName('flat-footed',acline,termCharsStrict)); 
+  tch = trim(getValueByName('touch',acline,termCharsStrict)); 
   acline = trim(acline:gsub('AC','')); 
-  creature.ac = ac;
-  creature.ff = ff;
-  creature.tch = tch; 
+  creature.ac = tonumber(ac);
+  creature.ff = tonumber(ff);
+  creature.tch = tonumber(tch); 
   creature.acline = acline; 
 
   -- parse HP/HD
@@ -1195,11 +1196,11 @@ function parseDefense(creature,data)
   if not tmp then
     error('No \'hp\' field found within defenses'); 
   end
-  hp = getValueByName('hp',tmp,termChars); 
+  hp = getValueByName('hp',tmp,termCharsLenient); 
   hp = getBonusNumber(hp,0); 
   hd = tmp:match('%(.+%)');
   hd = trim(hd:gsub('%(',''):gsub('%)','')); 
-  creature.hp = hp; 
+  creature.hp = tonumber(hp); 
   creature.hd = hd; 
 
   -- parse Saves
@@ -1208,9 +1209,9 @@ function parseDefense(creature,data)
     error('No fort save found within defenses'); 
   end
 
-  fort = getValueByName('Fort',tmp,termChars); 
-  ref = getValueByName('Ref',tmp,termChars); 
-  will = getValueByName('Will',tmp,termChars); 
+  fort = getValueByName('Fort',tmp,termCharsLenient); 
+  ref = getValueByName('Ref',tmp,termCharsLenient); 
+  will = getValueByName('Will',tmp,termCharsLenient); 
   creature.fort = tonumber(getBonusNumber(fort,1));
   creature.ref = tonumber(getBonusNumber(ref,1));
   creature.will = tonumber(getBonusNumber(will,1)); 
@@ -1225,42 +1226,42 @@ function parseDefense(creature,data)
   -- parse DR
   tmp = getLineByName('DR',data,creature.mark_defense,(nil == creature.mark_offense and #data or creature.mark_offense)); 
   if tmp then
-    dr = getValueByName('DR',tmp,termChars); 
+    dr = getValueByName('DR',tmp,termCharsLenient); 
   end
   -- parse SR
   tmp = getLineByName('SR',data,creature.mark_defense,(nil == creature.mark_offense and #data or creature.mark_offense)); 
   if tmp then
-    sr = getValueByName('SR',tmp,termChars); 
+    sr = getValueByName('SR',tmp,termCharsLenient); 
   end
   -- parse Regeneration
   tmp = getLineByName('regeneration',data,creature.mark_defense,(nil == creature.mark_offense and #data or creature.mark_offense)); 
   if tmp then
-    regen = getValueByName('regeneration',tmp,termChars); 
+    regen = getValueByName('regeneration',tmp,termCharsLenient); 
   end
   -- parse Fast Healing
   tmp = getLineByName('fast healing',data,creature.mark_defense,(nil == creature.mark_offense and #data or creature.mark_offense)); 
   if tmp then
-    fh = getValueByName('fast healing',tmp,termChars); 
+    fh = getValueByName('fast healing',tmp,termCharsLenient); 
   end
   -- parse Weaknesses
   tmp = getLineByName('Weaknesses',data,creature.mark_defense,(nil == creature.mark_offense and #data or creature.mark_offense)); 
   if tmp then
-    weak = getValueByName('Weaknesses',tmp,termChars); 
+    weak = getValueByName('Weaknesses',tmp,termCharsLenient); 
   end
   -- parse Resistances
   tmp = getLineByName('Resist',data,creature.mark_defense,(nil == creature.mark_offense and #data or creature.mark_offense)); 
   if tmp then
-    resist = getValueByName('Resist',tmp,termChars); 
+    resist = getValueByName('Resist',tmp,termCharsLenient); 
   end
   -- parse Immunities
   tmp = getLineByName('Immune',data,creature.mark_defense,(nil == creature.mark_offense and #data or creature.mark_offense)); 
   if tmp then
-    imm = getValueByName('Immune',tmp,termChars); 
+    imm = getValueByName('Immune',tmp,termCharsLenient); 
   end
   -- parse Defensive Abilities
   tmp = getLineByName('Defensive Abilities',data,creature.mark_defense,(nil == creature.mark_offense and #data or creature.mark_offense)); 
   if tmp then
-    defab = getValueByName('Defensive Abilities',tmp,termChars); 
+    defab = getValueByName('Defensive Abilities',tmp,termCharsLenient); 
   end
   -- parse Special Qualities (SQ)
   tmp = getLineByName('SQ',data,creature.mark_statistics,(nil == creature.mark_ecology and #data or creature.mark_ecology)); 
@@ -1500,12 +1501,12 @@ end
 function formatSpellName(spellstr)
   local spell = {};
   local termChars = {',',';'}; 
-  local dc,nprep,meta,proper,varient;
+  local dc,nprep,meta,proper,variant;
 
 
   dc = getValueByName('DC',spellstr,termChars);
   if dc then 
-    dc = getBonusNumber(dc,0); 
+    dc = tonumber(getBonusNumber(dc,0));
     nprep = spellstr:gsub(dc,'');
   else
     nprep = spellstr; 
@@ -1521,13 +1522,13 @@ function formatSpellName(spellstr)
   proper = trim(spellstr:gsub('%(.+%)',''))
   proper = trim(proper:gsub('%[.+%]',''))
   proper = formatSuperSubScript(proper); 
-  proper,varient = formatSpellStrength(proper); 
+  proper,variant = formatSpellStrength(proper); 
   --proper,meta = formatMetaMagics(proper); 
   proper = fmtXmlName(proper); 
 
   spell['dc'] = dc;
   spell['prepped'] = nprep;
-  spell['varient'] = varient or '';
+  spell['variant'] = variant or '';
   --spell['meta'] = meta or '';
   spell['propername'] = proper; 
   spell['name'] = trim(spellstr); 
@@ -1557,7 +1558,7 @@ function formatSuperSubScript(str)
 end
 
 --[[
-	Deal with spell strength varients
+	Deal with spell strength variants
 ]]--
 function formatSpellStrength(spellName)
   if not spellName then return; end
@@ -1568,7 +1569,7 @@ function formatSpellStrength(spellName)
   for _,v in pairs(strengths) do
     if spellName:find(v) then
       retval = trim(retval:gsub(v,'')); 	
-      creLog("formatSuperSubScript: removing+storing strength varient " .. v .. ' from raw spellName ' .. retval,5); 
+      creLog("formatSuperSubScript: removing+storing strength variant " .. v .. ' from raw spellName ' .. retval,5); 
       retval2 = v; 
       break; 
     end
@@ -1751,12 +1752,12 @@ function parseStatistics(creature,data)
   int = getBonusNumber(getValueByName('Int',tmp,termChars),0); 
   wis = getBonusNumber(getValueByName('Wis',tmp,termChars),0); 
   cha = getBonusNumber(getValueByName('Cha',tmp,termChars),0); 
-  creature.str = str;
-  creature.dex = dex;
-  creature.con = con;
-  creature.int = int;
-  creature.wis = wis;
-  creature.cha = cha; 
+  creature.str = tonumber(str);
+  creature.dex = tonumber(dex);
+  creature.con = tonumber(con);
+  creature.int = tonumber(int);
+  creature.wis = tonumber(wis);
+  creature.cha = tonumber(cha); 
 
   -- parse BAB/CMB/CMD
   babcmd = getLineByName('Base Atk',data,creature.mark_statistics,(nil == creature.mark_ecology and #data or creature.mark_ecology)); 
@@ -1844,16 +1845,27 @@ function parseSpecialAbilities(creature,data,ldata)
   local tmp; 
 
   if creature.mark_special_abilities ~= #data then
-    for i=creature.mark_special_abilities, #data do
+    local nextPart = #data
+    if creature.mark_ecology > creature.mark_special_abilities then
+      nextPart = creature.mark_ecology - 1
+    end
+    
+    for i=creature.mark_special_abilities, nextPart do
       line = data[i];
       lline = ldata[i]; 
       -- TODO pull name out
       if lline:match(escMagic('(su)')) then
-        extractSpecialAbilitiesNameValue(ab, line, data, i);
+        abname = extractSpecialAbilitiesNameValue(ab, line, data, i);
       elseif lline:match(escMagic('(ex)')) then
-        extractSpecialAbilitiesNameValue(ab, line, data, i);
+        abname = extractSpecialAbilitiesNameValue(ab, line, data, i);
       elseif lline:match(escMagic('(sp)')) then
-        extractSpecialAbilitiesNameValue(ab, line, data, i);
+        abname = extractSpecialAbilitiesNameValue(ab, line, data, i);
+      elseif abname ~= nil then
+        if (ab[abname]:len() <= 0) then
+          ab[abname] = trim(line);
+        else
+          ab[abname] = ab[abname] .. '\n' .. trim(line);
+        end
       end
     end
   end
@@ -1873,10 +1885,8 @@ function extractSpecialAbilitiesNameValue(ab, line, data, linenumber)
   tmp = line:find(escMagic(')')); 
   abname = trim(line:sub(1,tmp)); 
   abdesc = trim(line:sub(tmp+1));
-  if abdesc:len() == 0 and linenumber + 1 < #data then
-    abdesc = trim(data[linenumber+1]);
-  end
-  ab[abname] = abdesc; 
+  ab[abname] = abdesc;
+  return abname;
 end
 
 --[[
@@ -1910,13 +1920,13 @@ function parseAttacks(creature,data)
   creLog('parseAttacks (ranged)' .. tostring(ranged),1);
 
   if (melee and ranged) then
-    creature.fattack = melee:gsub(',',' and ') .. ' or ' .. ranged:gsub(',',' and ');
+    creature.fattack = melee:gsub(', ?',' and ') .. ' or ' .. ranged:gsub(', ?',' and ');
     creature.attack = dropIter(melee):gsub(' and ',' or ') .. ' or ' .. dropIter(ranged):gsub(' and ',' or ');
   elseif (melee) then
-    creature.fattack = melee:gsub(',',' and ');
+    creature.fattack = melee:gsub(', ?',' and ');
     creature.attack = dropIter(melee):gsub(' and ',' or '); 
   elseif (ranged) then
-    creature.fattack = ranged:gsub(',',' and ');
+    creature.fattack = ranged:gsub(', ?',' and ');
     creature.attack = dropIter(ranged):gsub(' and ',' or '); 
   end
 end
@@ -2011,7 +2021,14 @@ function parseEquipment(creature, data)
   end
 
   if not cgear and not ogear and not gear then
-    tmp = getLineByName('Treasure',data,creature.mark_ecology,(nil == creature.mark_special_abilities and #data or creature.mark_special_abilities)); 
+    local ecologyEnd
+    if nil ~= creature.mark_special_abilities and creature.mark_special_abilities > creature.mark_ecology then
+      ecologyEnd = creature.mark_special_abilities - 1
+    else
+      ecologyEnd = #data
+    end
+    
+    tmp = getLineByName('Treasure',data,creature.mark_ecology,ecologyEnd); 
     if tmp then
       tres = trim(getValueByName('Treasure',tmp,termChars)); 
     end
@@ -2099,6 +2116,13 @@ function getLineByName(strName, aryLines, locStart, locEnd)
   return retval1, retval2; 
 end
 
+--[[
+  Escape an arbitrary string that we wish to use as a pattern
+]]--
+function escapePattern(text)
+    return text:gsub("([^%w])", "%%%1")
+end
+
 
 --[[
 	Given a line, name and terminators, return the value. Value is
@@ -2111,17 +2135,17 @@ function getValueByName(strName, strLine, termChars)
     local locTerm = #strLine;
 
     creLog("getValueByName: " .. strName .. ' ' .. tostring(termChars) .. ' ' .. strLine,5); 
-    loc = strLine:find(strName);
+    loc = strLine:find(escapePattern(strName));
     if loc then
       for i = 1, #termChars do
-        local tmp = strLine:find(termChars[i],loc);
+        local tmp = strLine:find(escapePattern(termChars[i]),loc);
         if ((tmp ~= nil) and (tmp < locTerm)) then
-          locTerm = tmp;
+          locTerm = tmp-1;
         end
       end
       if (locTerm > loc) then
         locTerm = getParenSafeTerm(strLine,loc,locTerm,termChars);
-        retval = strLine:sub(loc+#strName,locTerm); 
+        retval = trim(strLine:sub(loc+#strName,locTerm));
         creLog('getValueByName: name ' .. strName .. ' f-start ' .. loc+#strName .. ' f-fin ' .. locTerm-1,5); 
       end
     else
