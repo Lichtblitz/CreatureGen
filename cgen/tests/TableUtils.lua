@@ -11,16 +11,15 @@
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 	GNU General Public License for more details.
-]]--
-
+]] --
 local TableUtils = {}
 
 function TableUtils.tableLength(table)
-  local count = 0
-  for _ in pairs(table) do
-    count = count + 1
-  end
-  return count
+	local count = 0
+	for _ in pairs(table) do
+		count = count + 1
+	end
+	return count
 end
 
 return TableUtils

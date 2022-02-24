@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 <!--
-	Copyright (C) 2016 Ken L.
+	Copyright (C) 2016 Ken L., Marcel AK. (Lichtblitz)
 	Licensed under the GPL Version 3 license.
 	http://www.gnu.org/licenses/gpl.html
 	This script is free software: you can redistribute it and/or modify
@@ -17,10 +17,10 @@
 <root version="3.0" release="3" icon="logo.png">
 
 	<properties>
-		<name>Creature Gen</name>
+		<name>Creature Lab</name>
 		<version>1</version>
 		
-		<author>Ken L.</author>
+		<author>Marcel AK. (Lichtblitz)</author>
 		<description>PRD and D20PFSRD stat block import tool</description>
 		
 		<ruleset>
@@ -35,5 +35,5 @@
 		<includefile source="cgen/xml/strings/scriptres.xml" />
 	</base>
 
-	<announcement text="CreatureGen v1.80 (GPL v3)" font="emotefont" icon="gCGenExtensionIcon" />
+	<announcement text="CreatureLab v2.0.0 (GPL v3)" font="emotefont" icon="gCGenExtensionIcon" />
 </root>

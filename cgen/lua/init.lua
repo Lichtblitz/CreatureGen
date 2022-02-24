@@ -12,9 +12,8 @@
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 	GNU General Public License for more details.
-]]--
-
+]] --
 function onInit()
-	LibraryData.addIndexButton("npc","cgen_button_launch"); 
+	LibraryData.addIndexButton("npc", "cgen_button_launch");
 end
 
