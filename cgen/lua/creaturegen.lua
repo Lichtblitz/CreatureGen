@@ -25,8 +25,6 @@ local fields = {};
 fields['feedbackres'] = 'gCGenExtensionIcon';
 fields['warningres'] = 'gCGenWarningIcon';
 fields['errorres'] = 'gCGenErrorIcon';
-fields['spelllib'] = 'PFRPG Archive Spells';
-fields['spelllibprefix'] = 'reference.spells.';
 
 -- -- --
 --
@@ -259,13 +257,7 @@ function populate(creBase, creData)
 	creList.environment.setValue(creature.environment);
 	-- organization
 	creList.organization.setValue(creature.organization);
-	-- check library link
-	libAvail = checkLib();
-	if libAvail then
-		dlog('Spell library: "' .. fields.spelllib .. '" detected as loaded and available');
-	else
-		addWarn('Spell library: "' .. fields.spelllib .. '" is not loaded or not available, spells will not be populated');
-	end
+
 	-- spells
 	popSpells(creBase, creData);
 
@@ -279,24 +271,6 @@ function populate(creBase, creData)
 end
 
 --[[
-	Checks if our sync'd library is loaded. If it is not, warn the user.
-
-	TRUE if library loaded, FALSE otherwise
-]] --
-function checkLib()
-	local modules, minfo;
-
-	modules = Module.getModules();
-	minfo = Module.getModuleInfo(fields.spelllib);
-
-	if minfo and minfo['loaded'] == true then
-		return true;
-	else
-		return false;
-	end
-end
-
---[[
 	Populate spells specifically for the FG pathfinder charactersheet
 ]] --
 function popSpells(creBase, creData)
@@ -306,6 +280,7 @@ function popSpells(creBase, creData)
 	local cnt = 1;
 
 	if creature.spells then
+		local loadedSpells = initializeSpells();
 		spellList = creBase.createChild('spellset');
 		for k, v in pairs(creature.spells) do
 			casterType = k;
@@ -327,38 +302,63 @@ function popSpells(creBase, creData)
 					spellType = k2;
 					spellTypeBaseNode = casterNode.createChild('levels');
 					if spellType:match('0') then
-						addSpellCantripOrison(creData, spellTypeBaseNode, casterNode, casterType, spellType);
+						addSpellCantripOrison(creData, spellTypeBaseNode, casterNode, casterType, spellType, nil, loadedSpells);
 					elseif spellType:match('1st') then
-						addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, 1);
+						addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, 1, loadedSpells);
 					elseif spellType:match('2nd') then
-						addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, 2);
+						addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, 2, loadedSpells);
 					elseif spellType:match('3rd') then
-						addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, 3);
+						addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, 3, loadedSpells);
 					elseif spellType:match('4th') then
-						addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, 4);
+						addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, 4, loadedSpells);
 					elseif spellType:match('5th') then
-						addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, 5);
+						addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, 5, loadedSpells);
 					elseif spellType:match('6th') then
-						addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, 6);
+						addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, 6, loadedSpells);
 					elseif spellType:match('7th') then
-						addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, 7);
+						addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, 7, loadedSpells);
 					elseif spellType:match('8th') then
-						addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, 8);
+						addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, 8, loadedSpells);
 					elseif spellType:match('9th') then
-						addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, 9);
+						addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, 9, loadedSpells);
 					end
 				end
 			end
 		end
+		popSpellLikeAb(creBase, creData, cnt, loadedSpells);
 	end
+end
 
-	popSpellLikeAb(creBase, creData, cnt);
+--[[
+	Loads the spells of all currenty loaded modules.
+	Later we will try and find matching spells from the list compared to the spells we are trying to add to the creature.
+]] --
+function initializeSpells()
+	local loadedSpellNodes = {};
+	for _, moduleId in pairs(Module.getModules()) do
+		local module = Module.getModuleInfo(moduleId);
+		creLog("initializeSpells: checking module " .. module.name, 4);
+		if module.loaded then
+			creLog("initializeSpells: module loaded " .. module.name, 4);
+			local nodeSpells = DB.findNode("reference.spells@" .. module.name);
+			if nodeSpells then
+				creLog("initializeSpells: found 'reference.spells' spells in module " .. module.name, 3);
+				table.insert(loadedSpellNodes, nodeSpells);
+			end
+			nodeSpells = DB.findNode("spelldesc@" .. module.name);
+			if nodeSpells then
+				creLog("initializeSpells: found 'spelldesc' spells in module " .. module.name, 3);
+				table.insert(loadedSpellNodes, nodeSpells);
+			end
+		end
+	end
+	return loadedSpellNodes;
 end
 
 --[[
 	Add spell cantrips/orisons (0th)
 ]] --
-function addSpellCantripOrison(creData, spellTypeBaseNode, casterNode, casterType, spellType, idcarry)
+function addSpellCantripOrison(creData, spellTypeBaseNode, casterNode, casterType, spellType, idcarry, loadedSpells)
 	local creature = creData.creature;
 	local spellsPerLevel = getSpellsPerLevel(creData, spellTypeNode, casterType, spellType);
 	local availZero;
@@ -380,13 +380,13 @@ function addSpellCantripOrison(creData, spellTypeBaseNode, casterNode, casterTyp
 	tmp.totalcast.setValue(0);
 	tmp.totalprepared.setValue(availZero.getValue());
 	creLog("addSpellCantripOrison: max prepared for " .. spellType .. ' : ' .. tmp.maxprepared.getValue(), 4);
-	return popSpellTypeList(creData, spellTypeNode, casterType, spellType, idcarry);
+	return popSpellTypeList(creData, spellTypeNode, casterType, spellType, idcarry, loadedSpells);
 end
 
 --[[
 	Add spell Levels 1-9
 ]] --
-function addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, level, idcarry)
+function addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, level, loadedSpells)
 	local creature = creData.creature;
 	local spellsPerLevel = getSpellsPerLevel(creData, spellTypeNode, casterType, spellType);
 	local rc;
@@ -416,7 +416,7 @@ function addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spell
 		tmp.pointsused.setValue(0);
 	end
 
-	return popSpellTypeList(creData, spellTypeNode, casterType, spellType, idcarry);
+	return popSpellTypeList(creData, spellTypeNode, casterType, spellType, nil, loadedSpells);
 end
 
 --[[
@@ -424,7 +424,7 @@ end
 	idcarry, is a carry from the spells population such that we're consistant with the id-naming
 	schema. 
 ]] --
-function popSpellLikeAb(creBase, creData, idcarry)
+function popSpellLikeAb(creBase, creData, idcarry, loadedSpells)
 	local creature = creData.creature;
 	local creList, spellList, casterNode, spellTypeNode, spellTypeBaseNode, alloLevel, tmp, rc;
 	local casterType, spellType;
@@ -466,44 +466,44 @@ function popSpellLikeAb(creBase, creData, idcarry)
 					spellType = k2;
 					spellTypeBaseNode = casterNode.createChild('levels');
 					if spellType:match('constant') then
-						sidcarry = addSpellCantripOrison(creData, spellTypeBaseNode, casterNode, casterType, spellType, sidcarry);
+						sidcarry = addSpellCantripOrison(creData, spellTypeBaseNode, casterNode, casterType, spellType, sidcarry, loadedSpells);
 					elseif spellType:match('at will') then
-						sidcarry = addSpellCantripOrison(creData, spellTypeBaseNode, casterNode, casterType, spellType, sidcarry);
+						sidcarry = addSpellCantripOrison(creData, spellTypeBaseNode, casterNode, casterType, spellType, sidcarry, loadedSpells);
 					elseif spellType:match('day') then
 						if next(avail) == nil then
 							-- we need to create a new overflow class!!
 							error('OVERFLOW on spell-like abilities currently unhandled');
 						end
 						alloLevel = table.remove(avail, 1);
-						addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, alloLevel);
+						addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, alloLevel, loadedSpells);
 					elseif spellType:match('week') then
 						if next(avail) == nil then
 							-- we need to create a new overflow class!!
 							error('OVERFLOW on spell-like abilities currently unhandled');
 						end
 						alloLevel = table.remove(avail, 1);
-						addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, alloLevel);
+						addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, alloLevel, loadedSpells);
 					elseif spellType:match('month') then
 						if next(avail) == nil then
 							-- we need to create a new overflow class!!
 							error('OVERFLOW on spell-like abilities currently unhandled');
 						end
 						alloLevel = table.remove(avail, 1);
-						addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, alloLevel);
+						addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, alloLevel, loadedSpells);
 					elseif spellType:match('year') then
 						if next(avail) == nil then
 							-- we need to create a new overflow class!!
 							error('OVERFLOW on spell-like abilities currently unhandled');
 						end
 						alloLevel = table.remove(avail, 1);
-						addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, alloLevel);
+						addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, alloLevel, loadedSpells);
 					elseif spellType:match('%d+ pe') then
 						if next(avail) == nil then
 							-- we need to create a new overflow class!!
 							error('OVERFLOW on spell-like abilities currently unhandled');
 						end
 						alloLevel = table.remove(avail, 1);
-						addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, alloLevel);
+						addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, alloLevel, loadedSpells);
 
 					end
 				end
@@ -532,7 +532,7 @@ function popSpellLikeAb(creBase, creData, idcarry)
 							error('OVERFLOW on spell-like abilities currently unhandled');
 						end
 						alloLevel = table.remove(avail, 1);
-						addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, alloLevel);
+						addSpellLevel(creData, spellTypeBaseNode, casterNode, casterType, spellType, alloLevel, loadedSpells);
 					end
 				end
 			end
@@ -606,7 +606,7 @@ end
 	Poplulates SpellType (1st,2nd,3/day,1/week etc...) lists. 
 	idcarry is mainly for Constant/Spell-Like-Abilities which occupy the 0-level
 ]] --
-function popSpellTypeList(creData, spellTypeNode, casterType, spellType, idcarry)
+function popSpellTypeList(creData, spellTypeNode, casterType, spellType, idcarry, loadedSpells)
 	local creature = creData.creature;
 	local spellNode, rc, prefix, preppedOverride;
 	local cnt = 1;
@@ -638,7 +638,7 @@ function popSpellTypeList(creData, spellTypeNode, casterType, spellType, idcarry
 		if prefix then
 			v.name = prefix .. v.name;
 		end
-		popSpellDetail(spellNode, v, casterType, preppedOverride);
+		popSpellDetail(spellNode, v, casterType, preppedOverride, loadedSpells);
 		cnt = cnt + 1;
 	end
 
@@ -648,7 +648,7 @@ end
 --[[
 	Populates data for the actual spell iteself by hopefully linking to a library. 
 ]] --
-function popSpellDetail(spellNode, spellData, casterType, preppedOverride)
+function popSpellDetail(spellNode, spellData, casterType, preppedOverride, loadedSpells)
 	local tmp, linked;
 	spellNode.createChild('name', 'string');
 	spellNode.createChild('prepared', 'number');
@@ -670,47 +670,45 @@ function popSpellDetail(spellNode, spellData, casterType, preppedOverride)
 	end
 
 	-- Library link (We add retries by striping out meta-magics)
-	if checkLib() then
-		linked = linkSpellLibrary(spellNode, spellData);
-		if linked then
-			creLog('popSpellDetail: populated: ' .. spellData.name .. ' #-prepped: ' .. tmp.prepared.getValue() .. ' prep-override? ' .. tostring(preppedOverride), 3);
+	linked = linkSpellLibrary(spellNode, spellData, loadedSpells);
+	if linked then
+		creLog('popSpellDetail: populated: ' .. spellData.name .. ' #-prepped: ' .. tmp.prepared.getValue() .. ' prep-override? ' .. tostring(preppedOverride), 3);
+	else
+		-- if we could not find our spell, then look for meta names and strip them out, one at a time
+		local flg = true;
+		local safeLimit = 0;
+		local metaName, metaMagics, variant
+		local other;
+
+		-- re-clean the string from the raw
+		metaName = spellData.rawname;
+		metaName = trim(metaName:gsub('%(.+%)', ''));
+		metaName = formatSuperSubScript(metaName);
+		metaName, variant = formatSpellStrength(metaName);
+		metaName = metaName:lower();
+		-- metaName = fmtXmlName(proper); 
+		creLog('popSpellDetail: preparing metaName ' .. metaName, 4);
+
+		while flg and safeLimit <= 5 do
+			metaName, metaMagics = formatMetaMagics(metaName, 1);
+			-- try with the new name; 
+			creLog('popSpellDetail: attempting another XML search with trimmed meta name: ' .. metaName, 4);
+			-- we format 'just in time' as we want spaces and other goodies to keep stripping metas
+			-- (we delmit by spaces which are stripped in getting the proper XML name)
+			spellData.propername = fmtXmlName(metaName);
+			linked = linkSpellLibrary(spellNode, spellData, loadedSpells);
+			if linked then
+				flg = false;
+			end
+			if not metaMagics or (metaMagics and #metaMagics) == 0 then
+				flg = false;
+			end
+			safeLimit = safeLimit + 1;
+		end
+		if not linked then
+			addWarn('"' .. spellData.name .. '" cannot be found within the loaded spell libraries"');
 		else
-			-- if we could not find our spell, then look for meta names and strip them out, one at a time
-			local flg = true;
-			local safeLimit = 0;
-			local metaName, metaMagics, variant
-			local other;
-
-			-- re-clean the string from the raw
-			metaName = spellData.rawname;
-			metaName = trim(metaName:gsub('%(.+%)', ''));
-			metaName = formatSuperSubScript(metaName);
-			metaName, variant = formatSpellStrength(metaName);
-			metaName = metaName:lower();
-			-- metaName = fmtXmlName(proper); 
-			creLog('popSpellDetail: preparing metaName ' .. metaName, 4);
-
-			while flg and safeLimit <= 5 do
-				metaName, metaMagics = formatMetaMagics(metaName, 1);
-				-- try with the new name; 
-				creLog('popSpellDetail: attempting another XML search with trimmed meta name: ' .. metaName, 4);
-				-- we format 'just in time' as we want spaces and other goodies to keep stripping metas
-				-- (we delmit by spaces which are stripped in getting the proper XML name)
-				spellData.propername = fmtXmlName(metaName);
-				linked = linkSpellLibrary(spellNode, spellData);
-				if linked then
-					flg = false;
-				end
-				if not metaMagics or (metaMagics and #metaMagics) == 0 then
-					flg = false;
-				end
-				safeLimit = safeLimit + 1;
-			end
-			if not linked then
-				addWarn('"' .. spellData.name .. '" cannot be found within spell library "' .. fields.spelllib .. '"');
-			else
-				creLog('popSpellDetail: populated ' .. spellData.name .. ' after a lookup retry was successful with ' .. metaName, 3);
-			end
+			creLog('popSpellDetail: populated ' .. spellData.name .. ' after a lookup retry was successful with ' .. metaName, 3);
 		end
 	end
 end
@@ -721,62 +719,60 @@ end
 
 	return TRUE if we could link it, FALSE otherwise
 ]] --
-function linkSpellLibrary(spellNode, spellData)
+function linkSpellLibrary(spellNode, spellData, loadedSpells)
 	local minfo, xmlSpellName, libNode, tmp, tmpb;
 
 	xmlSpellName = trim(spellData.propername:gsub('%s', '')) .. spellData.variant;
 	xmlSpellName = xmlSpellName:lower();
 	creLog('linkSpellLibrary: library XML spell name searched: "' .. xmlSpellName .. '"', 4);
 
-	minfo = Module.getModuleInfo(fields.spelllib);
-	if minfo and minfo['loaded'] == true then
-		-- TODO verify that this is a module we can use, currently we just use it
-		-- do our thing
-		local libNode = DB.findNode(fields.spelllibprefix .. xmlSpellName .. '@' .. fields.spelllib);
-		if libNode then
-			-- populate our spell stuffs
-			spellNode.createChild('castingtime', 'string');
-			spellNode.createChild('components', 'string');
-			spellNode.createChild('cost', 'number');
-			spellNode.createChild('description', 'string');
-			spellNode.createChild('duration', 'string');
-			spellNode.createChild('effect', 'string');
-			spellNode.createChild('level', 'string');
-			spellNode.createChild('range', 'string');
-			spellNode.createChild('save', 'string');
-			spellNode.createChild('school', 'string');
-			spellNode.createChild('shortdescription', 'string');
-			spellNode.createChild('sr', 'string');
-			-- fill our entries
-			tmp = spellNode.getChildren();
-			tmpb = libNode.getChildren();
-			tmp.castingtime.setValue(tmpb.castingtime.getValue());
-			tmp.components.setValue(tmpb.components.getValue());
-			tmp.description.setValue(stripTags(tmpb.description.getValue()));
-			tmp.duration.setValue(tmpb.duration.getValue());
-			tmp.level.setValue(tmpb.level.getValue());
-			tmp.range.setValue(tmpb.range.getValue());
-			tmp.save.setValue(tmpb.save.getValue());
-			tmp.school.setValue(tmpb.school.getValue());
-			tmp.sr.setValue(tmpb.sr.getValue());
-			-- these are 'optional' datum which may not exist, they're a basket case
-			if tmpb.cost then
-				tmp.cost.setValue(tmpb.cost.getValue());
+	-- minfo = Module.getModuleInfo(fields.spelllib);
+	for index, moduleNode in pairs(loadedSpells) do
+		for spellNodeName, libNode in pairs(moduleNode.getChildren()) do
+			if spellNodeName == xmlSpellName then
+				-- populate our spell stuffs
+				spellNode.createChild('castingtime', 'string');
+				spellNode.createChild('components', 'string');
+				spellNode.createChild('cost', 'number');
+				spellNode.createChild('description', 'string');
+				spellNode.createChild('duration', 'string');
+				spellNode.createChild('effect', 'string');
+				spellNode.createChild('level', 'string');
+				spellNode.createChild('range', 'string');
+				spellNode.createChild('save', 'string');
+				spellNode.createChild('school', 'string');
+				spellNode.createChild('shortdescription', 'string');
+				spellNode.createChild('sr', 'string');
+				-- fill our entries
+				tmp = spellNode.getChildren();
+				tmpb = libNode.getChildren();
+				tmp.castingtime.setValue(tmpb.castingtime.getValue());
+				tmp.components.setValue(tmpb.components.getValue());
+				tmp.description.setValue(stripTags(tmpb.description.getValue()));
+				tmp.duration.setValue(tmpb.duration.getValue());
+				tmp.level.setValue(tmpb.level.getValue());
+				tmp.range.setValue(tmpb.range.getValue());
+				tmp.save.setValue(tmpb.save.getValue());
+				tmp.school.setValue(tmpb.school.getValue());
+				tmp.sr.setValue(tmpb.sr.getValue());
+				-- these are 'optional' datum which may not exist, they're a basket case
+				if tmpb.cost then
+					tmp.cost.setValue(tmpb.cost.getValue());
+				end
+				if tmpb.effect then
+					tmp.effect.setValue(tmpb.effect.getValue());
+				end
+				if tmpb.shortdescription then
+					tmp.shortdescription.setValue(tmpb.shortdescription.getValue());
+				end
+				-- Let SpellManager parse our spell
+				SpellManager.parseSpell(spellNode);
+				return true;
 			end
-			if tmpb.effect then
-				tmp.effect.setValue(tmpb.effect.getValue());
-			end
-			if tmpb.shortdescription then
-				tmp.shortdescription.setValue(tmpb.shortdescription.getValue());
-			end
-			-- Let SpellManager parse our spell
-			SpellManager.parseSpell(spellNode);
-			return true;
-		else
-			return false;
 		end
 	end
 	return false;
+
 end
 
 --[[
