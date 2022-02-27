@@ -1061,8 +1061,14 @@ function parsePreliminary(creature, data, ldata)
 
 	-- find the name, look for CR with some numbers or --
 
-	tmp, tmp2 = getLineByName('CR', data, 1, creature.mark_defense);
-	if tmp == nil or not tmp:match('CR%s%d*') or tmp == '' then
+	tmp, tmp2 = getLineByName('CR%s%d*', data, 1, creature.mark_defense);
+	if tmp == nil and creature.mark_defense > 1 then
+		addWarn('NO Name found with CR in the same line! Name should be followed by a CR ie: "Sea turtle CR 1/8". Assuming that the first line is the name and the CR is simply missing.');
+		tmp = data[1];
+		tmp2 = 1;
+	end
+
+	if tmp == nil or tmp == '' then
 		error('NO Name found! Name must be followed by a CR ie: "Sea turtle CR 1/8"');
 	end
 
@@ -1080,7 +1086,10 @@ function parsePreliminary(creature, data, ldata)
 		error('NO Name found! Name must be followed by a CR ie: "Sea turtle CR 1/8"');
 	else
 		name = name:reverse();
-		name = name:sub(name:find('RC') + 2);
+		local rcIndex = name:find('RC');
+		if rcIndex then
+			name = name:sub(rcIndex + 2);
+		end
 		name = name:reverse();
 	end
 	creature.name = name;
@@ -1215,7 +1224,9 @@ function parseDefense(creature, data)
 	hp = getValueByName('hp', tmp, termCharsLenient);
 	hp = getBonusNumber(hp, 0);
 	hd = tmp:match('%(.+%)');
-	hd = trim(hd:gsub('%(', ''):gsub('%)', ''));
+	if hd then
+		hd = trim(hd:gsub('%(', ''):gsub('%)', ''));
+	end
 	creature.hp = tonumber(hp);
 	creature.hd = hd;
 
@@ -1388,7 +1399,7 @@ function parseOffense(creature, data)
 		spc = dfspc;
 		spcrchline = spc .. '/' .. rch;
 	else
-		spcrchline = '5ft./5ft';
+		spcrchline = '5ft./5ft.';
 	end
 	creature.spacereachline = spcrchline;
 
@@ -1960,10 +1971,10 @@ function parseAttacks(creature, data)
 	local melee, ranged, attack, fattack, tmp;
 
 	tmp = getLineByName('Melee', data, creature.mark_offense, (nil == creature.mark_statistics and #data or creature.mark_statistics));
-	melee = trim(getValueByName('Melee', tmp, {}));
+	melee = filterTrailingSeparator(trim(getValueByName('Melee', tmp, {})), ',');
 
 	tmp = getLineByName('Ranged', data, creature.mark_offense, (nil == creature.mark_statistics and #data or creature.mark_statistics));
-	ranged = trim(getValueByName('Ranged', tmp, {}));
+	ranged = filterTrailingSeparator(trim(getValueByName('Ranged', tmp, {})), ',');
 
 	creLog('parseAttacks (melee)' .. tostring(melee), 1);
 	creLog('parseAttacks (ranged)' .. tostring(ranged), 1);
@@ -1978,6 +1989,16 @@ function parseAttacks(creature, data)
 		creature.fattack = ranged:gsub(', ?', ' and ');
 		creature.attack = dropIter(ranged):gsub(' and ', ' or ');
 	end
+end
+
+--[[
+	Removes trailing separators, if any.
+]] --
+function filterTrailingSeparator(text, separator)
+	if text and text:match(separator .. '$') then
+		return text:sub(1, #text - #separator);
+	end
+	return text;
 end
 
 --[[

@@ -18,6 +18,7 @@ local lu = require('luaunit')
 local StringUtils = require('StringUtils')
 local TableUtils = require('TableUtils')
 local D20pfsrdDOTcom = require('D20pfsrdDOTcom')
+local Pathbuilder = require('Pathbuilder')
 
 Debug = {}
 function Debug.console(string)
@@ -38,6 +39,7 @@ function TestGenesis:testCopyFromD20PFSRDdotCOM()
 
 	lu.assertNotNil(actual)
 	lu.assertNotNil(actual.creature)
+  lu.assertNil(actual.creature.error)
 
 	-- GENERAL
 	lu.assertEquals("Kraken", actual.creature.name)
@@ -69,9 +71,11 @@ function TestGenesis:testCopyFromD20PFSRDdotCOM()
 
 	-- Spells
 	lu.assertNotNil(actual.creature.spells)
+  lu.assertEquals(1, TableUtils.tableLength(actual.creature.spells))
 	lu.assertNotNil(actual.creature.spells['spell-like abilities'])
 	lu.assertEquals(0, actual.creature.spells['spell-like abilities'].concentration)
 	lu.assertEquals(15, actual.creature.spells['spell-like abilities'].casterlevel)
+  lu.assertEquals(3, TableUtils.tableLength(actual.creature.spells['spell-like abilities']))
 	local spelllike = actual.creature.spells['spell-like abilities']['1/day']
 	lu.assertNotNil(spelllike)
 	lu.assertEquals(4, #spelllike)
@@ -95,7 +99,6 @@ function TestGenesis:testCopyFromD20PFSRDdotCOM()
 	lu.assertEquals("Aquan, Common", actual.creature.lang)
 
 	-- SPECIAL ABILITIES
-
 	lu.assertNotNil(actual.creature.specialab)
 	lu.assertEquals(4, TableUtils.tableLength(actual.creature.specialab))
 	lu.assertEquals(
@@ -112,6 +115,117 @@ Kraken Ink: Ink cloud--contact; save Fort DC 29; frequency 1/round for 10 rounds
 	lu.assertEquals("any ocean", actual.creature.environment)
 	lu.assertEquals("solitary", actual.creature.organization)
 	lu.assertEquals("triple", actual.creature.gearline)
+
+end
+
+function TestGenesis:testCopyFromPathbuilder()
+	local actual = genesis(Pathbuilder.kyarash());
+	print(StringUtils.serializeTable(actual))
+
+	lu.assertNotNil(actual)
+	lu.assertNotNil(actual.creature)
+  lu.assertNil(actual.creature.error)
+
+	-- GENERAL
+	lu.assertEquals("Kyarash", actual.creature.name)
+	lu.assertEquals(0, actual.creature.cr)
+	lu.assertNil(actual.creature.exp)
+	lu.assertEquals("medium", actual.creature.size)
+	lu.assertEquals("Chaotic Neutral Medium Ifrit Oracle 5;", actual.creature.tpe)
+	lu.assertEquals(11, actual.creature.init)
+	lu.assertEquals("Darkvision; Perception: +5", actual.creature.senses)
+
+	-- DEFENSE
+	lu.assertEquals(22, actual.creature.ac)
+	lu.assertEquals(14, actual.creature.tch)
+	lu.assertEquals(18, actual.creature.ff)
+	lu.assertEquals("22, touch 14, flat-footed 18", actual.creature.acline)
+	lu.assertNil(actual.creature.hd)
+	lu.assertEquals(43, actual.creature.hp)
+	lu.assertEquals(4, actual.creature.fort)
+	lu.assertEquals(7, actual.creature.ref)
+	lu.assertEquals(5, actual.creature.will)
+	lu.assertEquals("Special Qualities Curse: Tongues; Mystery: Flame; Revelations: Cinder Dance; Gaze of Flames;", actual.creature.sqline)
+
+	-- OFFENSE
+	lu.assertEquals("20 ft.", actual.creature.speed);
+	lu.assertEquals("Battle aspergillum +9 (1d6+2 ) and Dagger +8 (1d4+1 19-20)", actual.creature.fattack);
+	lu.assertEquals("Battle aspergillum +9 (1d6+2 ) or Dagger +8 (1d4+1 19-20)", actual.creature.attack);
+	lu.assertEquals("5ft./5ft.", actual.creature.spacereachline);
+	lu.assertNil(actual.creature.sa);
+
+	-- Spells
+	lu.assertNotNil(actual.creature.spells)
+  local oracleSpells = actual.creature.spells['oracle spells known']
+	lu.assertNotNil(oracleSpells)
+	lu.assertEquals(9, oracleSpells.concentration)
+	lu.assertEquals(5, oracleSpells.casterlevel)
+  lu.assertEquals(5, TableUtils.tableLength(oracleSpells))
+	local levelSpells = oracleSpells['0th (at will)']
+	lu.assertNotNil(levelSpells)
+	lu.assertEquals(6, #levelSpells)
+	lu.assertEquals("detectmagic", levelSpells[1].propername)
+  lu.assertEquals(14, levelSpells[1].dc)
+	lu.assertEquals("grasp", levelSpells[2].propername)
+  lu.assertEquals(14, levelSpells[2].dc)
+	lu.assertEquals("guidance", levelSpells[3].propername)
+  lu.assertEquals(14, levelSpells[3].dc)
+  lu.assertEquals("mending", levelSpells[4].propername)
+  lu.assertEquals(14, levelSpells[4].dc)
+  lu.assertEquals("spark", levelSpells[5].propername)
+  lu.assertEquals(16, levelSpells[5].dc)
+  lu.assertEquals("stabilize", levelSpells[6].propername)
+  lu.assertEquals(14, levelSpells[6].dc)
+  
+  levelSpells = oracleSpells['1st (7/day)']
+	lu.assertNotNil(levelSpells)
+	lu.assertEquals(6, #levelSpells)
+	lu.assertEquals("burninghands", levelSpells[1].propername)
+  lu.assertEquals(17, levelSpells[1].dc)
+	lu.assertEquals("curelightwounds", levelSpells[2].propername)
+  lu.assertEquals(15, levelSpells[2].dc)
+	lu.assertEquals("divinefavor", levelSpells[3].propername)
+  lu.assertEquals(17, levelSpells[3].dc)
+  lu.assertEquals("murderouscommand", levelSpells[4].propername)
+  lu.assertEquals(15, levelSpells[4].dc)
+  lu.assertEquals("obscuringmist", levelSpells[5].propername)
+  lu.assertEquals(15, levelSpells[5].dc)
+  lu.assertEquals("unbreakableheart", levelSpells[6].propername)
+  lu.assertEquals(15, levelSpells[6].dc)
+  
+  levelSpells = oracleSpells['2nd (5/day)']
+	lu.assertNotNil(levelSpells)
+	lu.assertEquals(4, #levelSpells)
+	lu.assertEquals("ashenpath", levelSpells[1].propername)
+  lu.assertEquals(16, levelSpells[1].dc)
+	lu.assertEquals("curemoderatewounds", levelSpells[2].propername)
+  lu.assertEquals(16, levelSpells[2].dc)
+	lu.assertEquals("resistenergy", levelSpells[3].propername)
+  lu.assertEquals(16, levelSpells[3].dc)
+  lu.assertEquals("soundburst", levelSpells[4].propername)
+  lu.assertEquals(18, levelSpells[4].dc)
+
+	-- STATISTICS
+	lu.assertEquals(13, actual.creature.str)
+	lu.assertEquals(20, actual.creature.dex)
+	lu.assertEquals(15, actual.creature.con)
+	lu.assertEquals(15, actual.creature.int)
+	lu.assertEquals(11, actual.creature.wis)
+	lu.assertEquals(18, actual.creature.cha)
+	lu.assertEquals("Base Atk + +3; CMB +4; CMD 19", actual.creature.babcmd)
+	lu.assertEquals("Greater Spell Focus: Evocation; Nimble Moves; Spell Focus: Evocation; Weapon Finesse;",
+	                actual.creature.feats)
+	lu.assertEquals("Acrobatics +13; Climb +7; Intimidate +12; Perception +5; Perform (a) +9; Sense Motive +8; Spellcraft +10;", actual.creature.skills)
+	lu.assertNil(actual.creature.lang)
+
+	-- SPECIAL ABILITIES
+
+	lu.assertNil(actual.creature.specialab)
+
+	-- ECOLOGY
+	lu.assertNil(actual.creature.environment)
+	lu.assertNil(actual.creature.organization)
+	lu.assertNil(actual.creature.gearline)
 
 end
 
