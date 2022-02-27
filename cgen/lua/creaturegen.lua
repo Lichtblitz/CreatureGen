@@ -720,7 +720,7 @@ end
 	return TRUE if we could link it, FALSE otherwise
 ]] --
 function linkSpellLibrary(spellNode, spellData, loadedSpells)
-	local minfo, xmlSpellName, libNode, tmp, tmpb;
+	local minfo, xmlSpellName, libNode, tmp;
 
 	xmlSpellName = trim(spellData.propername:gsub('%s', '')) .. spellData.variant;
 	xmlSpellName = xmlSpellName:lower();
@@ -745,25 +745,24 @@ function linkSpellLibrary(spellNode, spellData, loadedSpells)
 				spellNode.createChild('sr', 'string');
 				-- fill our entries
 				tmp = spellNode.getChildren();
-				tmpb = libNode.getChildren();
-				tmp.castingtime.setValue(tmpb.castingtime.getValue());
-				tmp.components.setValue(tmpb.components.getValue());
-				tmp.description.setValue(stripTags(tmpb.description.getValue()));
-				tmp.duration.setValue(tmpb.duration.getValue());
-				tmp.level.setValue(tmpb.level.getValue());
-				tmp.range.setValue(tmpb.range.getValue());
-				tmp.save.setValue(tmpb.save.getValue());
-				tmp.school.setValue(tmpb.school.getValue());
-				tmp.sr.setValue(tmpb.sr.getValue());
+				tmp.castingtime.setValue(DB.getValue(libNode, "castingtime", ""));
+				tmp.components.setValue(DB.getValue(libNode, "components", ""));
+				tmp.description.setValue(stripTags(DB.getValue(libNode, "description", "")));
+				tmp.duration.setValue(DB.getValue(libNode, "duration", ""));
+				tmp.level.setValue(DB.getValue(libNode, "level", ""));
+				tmp.range.setValue(DB.getValue(libNode, "range", ""));
+				tmp.save.setValue(DB.getValue(libNode, "save", ""));
+				tmp.school.setValue(DB.getValue(libNode, "school", ""));
+				tmp.sr.setValue(DB.getValue(libNode, "sr", ""));
 				-- these are 'optional' datum which may not exist, they're a basket case
-				if tmpb.cost then
-					tmp.cost.setValue(tmpb.cost.getValue());
+				if DB.getValue(libNode, "cost", "") then
+					tmp.cost.setValue(DB.getValue(libNode, "cost", ""));
 				end
-				if tmpb.effect then
-					tmp.effect.setValue(tmpb.effect.getValue());
+				if DB.getValue(libNode, "effect", "") then
+					tmp.effect.setValue(DB.getValue(libNode, "effect", ""));
 				end
-				if tmpb.shortdescription then
-					tmp.shortdescription.setValue(tmpb.shortdescription.getValue());
+				if DB.getValue(libNode, "shortdescription", "") then
+					tmp.shortdescription.setValue(DB.getValue(libNode, "shortdescription", ""));
 				end
 				-- Let SpellManager parse our spell
 				SpellManager.parseSpell(spellNode);
@@ -1450,11 +1449,11 @@ function parseSpells(creature, data)
 	--             -> spell details
 	--       -> CL/CC
 	--       -> known 0,1,2,3,4,5,6,7,8,9
-	formatSpells('Spell%-Like Abilities', creature, data);
-	formatSpells('Psychic Magic', creature, data);
-	formatSpells('Spells Known', creature, data);
-	formatSpells('Spells Prepared', creature, data);
-	formatSpells('Extracts Prepared', creature, data, 1);
+	formatSpells('[Ss]pell%-[Ll]ike [Aa]bilities', creature, data);
+	formatSpells('[Pp]sychic [Mm]agic', creature, data);
+	formatSpells('[Ss]pells [Kk]nown', creature, data);
+	formatSpells('[Ss]pells [Pp]repared', creature, data);
+	formatSpells('[Ee]xtracts [Pp]repared', creature, data, 1);
 end
 
 --[[
@@ -1504,6 +1503,12 @@ function formatSpells(typestr, creature, data, extra)
 			-- parse spells following this line
 			for i = start, #data do
 				a, b = data[i]:find('%-%-');
+				if not a then
+					a, b = data[i]:find('%)%-');
+					if a then
+						a = a + 1;
+					end
+				end
 				if a then
 					-- dlog('a: ' .. a .. ' b: ' .. b); 
 					spellType = data[i]:sub(1, a - 1):lower();
@@ -1511,7 +1516,7 @@ function formatSpells(typestr, creature, data, extra)
 						spells[casterType][spellType] = {};
 					end
 					line = data[i]:sub(b + 1);
-					tmp = strsplitparen(line, ',');
+					tmp = strsplitparen(line, '[,;]');
 					for k, v in pairs(tmp) do
 						-- dlog(v);
 						creLog('formatSpells: Adding Spell: ' .. casterType .. ' ' .. spellType .. ' ' .. v, 3);
