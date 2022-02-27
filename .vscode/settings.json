@@ -1,3 +1,8 @@
 {
-    "vscode-lua-format.configPath": ".vscode/vscode-lua-format.config"
+    "vscode-lua-format.configPath": ".vscode/vscode-lua-format.config",
+    "Lua.diagnostics.globals": [
+        "DB",
+        "Module",
+        "SpellManager"
+    ]
 }

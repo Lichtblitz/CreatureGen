@@ -767,12 +767,37 @@ function linkSpellLibrary(spellNode, spellData, loadedSpells)
 				end
 				-- Let SpellManager parse our spell
 				SpellManager.parseSpell(spellNode);
+
+				local castAction = getCastAction(spellNode);
+				if castAction then
+					if spellData.dc then
+						creLog('linkSpellLibrary: setting fixed dc for "' .. xmlSpellName .. '" of "' .. spellData.dc .. '"', 4);
+						DB.setValue(castAction, "savedctype", "string", "fixed");
+						DB.setValue(castAction, "savedcmod", "number", spellData.dc);
+					end
+				end
 				return true;
 			end
 		end
 	end
 	return false;
+end
 
+--[[
+	Extracts and returns the action that holds all the cast information for the spell.
+	This action is created by calling SpellManager.parseSpell before.
+]] --
+function getCastAction(spellNode)
+	local spellName = DB.getValue(spellNode, "name", "");
+
+	local actions = DB.getChild(spellNode, "actions");
+	for actionId, action in pairs(actions.getChildren()) do
+		if DB.getValue(action, "type", "") == "cast" then
+			creLog('getCastAction: found spell action for "' .. spellName .. '" with id "' .. actionId .. '"', 4);
+			return action;
+		end
+	end
+	addError("Error while processing spells: No 'cast' action was found for spell '" .. spellName .. "'");
 end
 
 --[[
