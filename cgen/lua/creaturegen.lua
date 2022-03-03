@@ -756,7 +756,7 @@ function linkSpellLibrary(spellNode, spellData, loadedSpells)
 				tmp.sr.setValue(DB.getValue(libNode, "sr", ""));
 				-- these are 'optional' datum which may not exist, they're a basket case
 				if DB.getValue(libNode, "cost", "") then
-					tmp.cost.setValue(DB.getValue(libNode, "cost", ""));
+					tmp.cost.setValue(DB.getValue(libNode, "cost", 0));
 				end
 				if DB.getValue(libNode, "effect", "") then
 					tmp.effect.setValue(DB.getValue(libNode, "effect", ""));
