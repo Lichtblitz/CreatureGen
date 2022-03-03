@@ -343,12 +343,13 @@ function initializeSpells()
 			local nodeSpells = DB.findNode("reference.spells@" .. module.name);
 			if nodeSpells then
 				creLog("initializeSpells: found 'reference.spells' spells in module " .. module.name, 3);
-				table.insert(loadedSpellNodes, nodeSpells);
-			end
-			nodeSpells = DB.findNode("spelldesc@" .. module.name);
-			if nodeSpells then
-				creLog("initializeSpells: found 'spelldesc' spells in module " .. module.name, 3);
-				table.insert(loadedSpellNodes, nodeSpells);
+				loadedSpellNodes[module.name] = nodeSpells;
+			else
+				nodeSpells = DB.findNode("spelldesc@" .. module.name);
+				if nodeSpells then
+					creLog("initializeSpells: found 'spelldesc' spells in module " .. module.name, 3);
+					loadedSpellNodes[module.name] = nodeSpells;
+				end
 			end
 		end
 	end
@@ -726,10 +727,10 @@ function linkSpellLibrary(spellNode, spellData, loadedSpells)
 	xmlSpellName = xmlSpellName:lower();
 	creLog('linkSpellLibrary: library XML spell name searched: "' .. xmlSpellName .. '"', 4);
 
-	-- minfo = Module.getModuleInfo(fields.spelllib);
-	for index, moduleNode in pairs(loadedSpells) do
+	for moduleName, moduleNode in pairs(loadedSpells) do
 		for spellNodeName, libNode in pairs(moduleNode.getChildren()) do
 			if spellNodeName == xmlSpellName then
+				creLog('linkSpellLibrary: library XML spell name found @ "' .. moduleName .. '"', 4);
 				-- populate our spell stuffs
 				spellNode.createChild('castingtime', 'string');
 				spellNode.createChild('components', 'string');

@@ -3,6 +3,8 @@
     "Lua.diagnostics.globals": [
         "DB",
         "Module",
-        "SpellManager"
+        "SpellManager",
+        "CreatureGen",
+        "Interface"
     ]
 }
