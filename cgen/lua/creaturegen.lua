@@ -343,17 +343,26 @@ function initializeSpells()
 			local nodeSpells = DB.findNode("reference.spells@" .. module.name);
 			if nodeSpells then
 				creLog("initializeSpells: found 'reference.spells' spells in module " .. module.name, 3);
-				loadedSpellNodes[module.name] = nodeSpells;
+				insertSpells(loadedSpellNodes, module.name, nodeSpells)
 			else
 				nodeSpells = DB.findNode("spelldesc@" .. module.name);
 				if nodeSpells then
 					creLog("initializeSpells: found 'spelldesc' spells in module " .. module.name, 3);
-					loadedSpellNodes[module.name] = nodeSpells;
+					insertSpells(loadedSpellNodes, module.name, nodeSpells)
 				end
 			end
 		end
 	end
 	return loadedSpellNodes;
+end
+
+function insertSpells(loadedSpellNodes, name, node)
+	if name == "PFRPG - Spellbook" then
+		-- Always prioritize this module because the spells are much better maintained
+		table.insert(loadedSpellNodes, 1, {name = name, node = node});
+	else
+		table.insert(loadedSpellNodes, {name = name, node = node});
+	end
 end
 
 --[[
@@ -727,7 +736,9 @@ function linkSpellLibrary(spellNode, spellData, loadedSpells)
 	xmlSpellName = xmlSpellName:lower();
 	creLog('linkSpellLibrary: library XML spell name searched: "' .. xmlSpellName .. '"', 4);
 
-	for moduleName, moduleNode in pairs(loadedSpells) do
+	for index, module in ipairs(loadedSpells) do
+		local moduleName = module.name;
+		local moduleNode = module.node;
 		for spellNodeName, libNode in pairs(moduleNode.getChildren()) do
 			if spellNodeName == xmlSpellName then
 				creLog('linkSpellLibrary: library XML spell name found @ "' .. moduleName .. '"', 4);
@@ -2182,7 +2193,7 @@ function getLineByName(strName, aryLines, locStart, locEnd)
 	creLog("getLineByName: " .. strName .. ' ' .. tostring(locStart) .. ' ' .. tostring(locEnd) .. ' ' .. tostring(aryLines ~= nil), 5);
 
 	for i = locStart, locEnd do
-		if (aryLines[i]:find(strName) ~= nil) then
+		if (aryLines[i]:lower():find(strName:lower()) ~= nil) then
 			retval1 = aryLines[i];
 			retval2 = i;
 			break
@@ -2213,7 +2224,7 @@ function getValueByName(strName, strLine, termChars)
 	local locTerm = #strLine;
 
 	creLog("getValueByName: " .. strName .. ' ' .. tostring(termChars) .. ' ' .. strLine, 5);
-	loc = strLine:find(escapePattern(strName));
+	loc = strLine:lower():find(escapePattern(strName:lower()));
 	if loc then
 		for i = 1, #termChars do
 			local tmp = strLine:find(escapePattern(termChars[i]), loc);
