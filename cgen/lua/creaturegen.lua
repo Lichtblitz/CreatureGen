@@ -261,12 +261,88 @@ function populate(creBase, creData)
 	-- spells
 	popSpells(creBase, creData);
 
+	-- effects
+	popEffects(creBase, creData);
+
 	-- warnings if any
 	if next(warn) ~= nil then
 		addWarn("Import complete for " .. creature.name);
 		sendWarnings();
 	else
 		sendFeedback("Import complete for " .. creature.name);
+	end
+end
+
+function popEffects(creBase, creData)
+	local creature = creData.creature;
+
+	if not creature.effects then
+		return;
+	end
+
+	local effectList = creBase.createChild('effectlist');
+	local index = 1;
+
+	if creature.effects.immunities then
+		for _, immunity in ipairs(creature.effects.immunities) do
+			local effect = effectList.createChild(string.format("id-%05d", index));
+			index = index + 1;
+			effect.createChild('visibility', 'string').setValue('hide');
+			effect.createChild('effect', 'string').setValue(string.format('IMMUNE: %s;', immunity.type));
+			effect.createChild('effect_description', 'string').setValue(string.format('[IMMUNE: %s;] visibility [hide]', immunity.type));
+			effect.createChild('type', 'string').setValue('susceptiblity');
+			effect.createChild('susceptiblity', 'string').setValue(immunity.type);
+			effect.createChild('actiononly', 'number').setValue(0);
+			effect.createChild('susceptiblity_modifier', 'number').setValue(0);
+			effect.createChild('susceptiblity_type', 'string').setValue(''); -- no value for IMMUNE; that's Fantasy Grounds, alright
+			effect.createChild('name', 'string').setValue(creature.name);
+			--DB.addHandler(effect.getPath(), "onChildUpdate", onUpdate)
+		end
+	end
+
+	if creature.effects.resistances then
+		for _, resistance in ipairs(creature.effects.resistances) do
+			local effect = effectList.createChild(string.format("id-%05d", index));
+			index = index + 1;
+			effect.createChild('visibility', 'string').setValue('hide');
+			effect.createChild('effect', 'string').setValue(string.format('RESIST: %d %s;', resistance.mod, resistance.type));
+			effect.createChild('effect_description', 'string').setValue(string.format('[RESIST: %d %s;] visibility [hide]', resistance.mod, resistance.type));
+			effect.createChild('type', 'string').setValue('susceptiblity');
+			effect.createChild('susceptiblity', 'string').setValue(resistance.type);
+			effect.createChild('actiononly', 'number').setValue(0);
+			effect.createChild('susceptiblity_modifier', 'number').setValue(resistance.mod);
+			effect.createChild('susceptiblity_type', 'string').setValue('resist');
+			effect.createChild('name', 'string').setValue(creature.name);
+			--DB.addHandler(effect.getPath(), "onChildUpdate", onUpdate)
+		end
+	end
+
+	if creature.effects.vulnerabilities then
+		for _, vulnerability in ipairs(creature.effects.vulnerabilities) do
+			local effect = effectList.createChild(string.format("id-%05d", index));
+			index = index + 1;
+			effect.createChild('visibility', 'string').setValue('hide');
+			effect.createChild('effect', 'string').setValue(string.format('VULN: %s;', vulnerability.type));
+			effect.createChild('effect_description', 'string').setValue(string.format('[VULN: %s;] visibility [hide]', vulnerability.type));
+			effect.createChild('type', 'string').setValue('susceptiblity');
+			effect.createChild('susceptiblity', 'string').setValue(vulnerability.type);
+			effect.createChild('actiononly', 'number').setValue(0);
+			effect.createChild('susceptiblity_modifier', 'number').setValue(0);
+			effect.createChild('susceptiblity_type', 'string').setValue('vuln');
+			effect.createChild('name', 'string').setValue(creature.name);
+			--DB.addHandler(effect.getPath(), "onChildUpdate", onUpdate)
+		end
+	end
+end
+
+function onUpdate(nodeUpdated)
+	Debug.console('-------------------');
+	for key, valueNode in pairs(nodeUpdated.getChildren()) do
+		local value = valueNode.getValue();
+		if value == nil then
+			value = 'nil';
+		end
+		Debug.console(key .. ': ' .. value);
 	end
 end
 
@@ -432,7 +508,7 @@ end
 --[[
 	Populate spell like abilities which will occupy FG 'levels' to allow ticking off of uses. 
 	idcarry, is a carry from the spells population such that we're consistant with the id-naming
-	schema. 
+	schema.
 ]] --
 function popSpellLikeAb(creBase, creData, idcarry, loadedSpells)
 	local creature = creData.creature;
@@ -776,8 +852,15 @@ function linkSpellLibrary(spellNode, spellData, loadedSpells)
 				if DB.getValue(libNode, "shortdescription", "") then
 					tmp.shortdescription.setValue(DB.getValue(libNode, "shortdescription", ""));
 				end
-				-- Let SpellManager parse our spell
-				SpellManager.parseSpell(spellNode);
+
+				if libNode.getChild("actions") then
+					--[[Copy actions from spell library. Some libraries, like PFRPG-Spellbook have actions
+					in a better state than what the SpellManager could interpret]] --
+					DB.copyNode(libNode.getChild("actions"), spellNode.createChild("actions"));
+				else
+					-- Let SpellManager parse our spell
+					SpellManager.parseSpell(spellNode);
+				end
 
 				local castAction = getCastAction(spellNode);
 				if castAction then
@@ -796,7 +879,8 @@ end
 
 --[[
 	Extracts and returns the action that holds all the cast information for the spell.
-	This action is created by calling SpellManager.parseSpell before.
+	This action is created by calling SpellManager.parseSpell before
+	or by copying the prepared actions from the spell library.
 ]] --
 function getCastAction(spellNode)
 	local spellName = DB.getValue(spellNode, "name", "");
@@ -877,6 +961,7 @@ end
 	Let's create some monsters... FG style!
 ]] --
 function genesis(data)
+	Debug.console(data);
 	dmesg = {};
 	warn = {};
 	errs = {};
@@ -1310,6 +1395,7 @@ function parseDefense(creature, data)
 
 	-- make SQ line (for FG)
 	creature.sqline = '';
+	creature.effects = {};
 	if dr then
 		creature.sqline = creature.sqline .. 'DR ' .. trim(dr):gsub(';', '') .. '; ';
 	end
@@ -1317,15 +1403,31 @@ function parseDefense(creature, data)
 		creature.sqline = creature.sqline .. 'SR ' .. trim(sr):gsub(';', '') .. '; ';
 	end
 	if weak then
+		creature.effects.vulnerabilities = {};
+		local prefix = 'vulnerability to ';
+		for _, vulnerability in ipairs(strsplitpattern(trim(weak), ' ?, ?')) do
+			if string.match(vulnerability, prefix) then
+				table.insert(creature.effects.vulnerabilities, {type = vulnerability:sub(prefix:len())});
+			end
+		end
 		creature.sqline = creature.sqline .. 'Weaknesses ' .. trim(weak):gsub(';', '') .. '; ';
 	end
 	if resist then
+		creature.effects.resistances = {};
+		for _, resistance in ipairs(strsplitpattern(trim(resist):gsub(';', ','), ' ?, ?')) do
+			local resistanceParts = strsplitpattern(resistance, ' ')
+			table.insert(creature.effects.resistances, {type = resistanceParts[1], mod = tonumber(resistanceParts[2])});
+		end
 		creature.sqline = creature.sqline .. 'Resist ' .. trim(resist):gsub(';', '') .. '; ';
 	end
 	if hard then
 		creature.sqline = creature.sqline .. 'Hardness ' .. trim(hard):gsub(';', '') .. '; ';
 	end
 	if imm then
+		creature.effects.immunities = {};
+		for _, immunity in ipairs(strsplitpattern(trim(imm), ' ?, ?')) do
+			table.insert(creature.effects.immunities, {type = immunity});
+		end
 		creature.sqline = creature.sqline .. 'Immune ' .. trim(imm):gsub(';', '') .. '; ';
 	end
 	if regen then
@@ -1339,7 +1441,7 @@ function parseDefense(creature, data)
 	end
 	if sq then
 		creature.sqline = creature.sqline .. 'Special Qualities ' .. trim(sq);
-	elseif sqline ~= '' then
+	elseif creature.sqline ~= '' then
 		creature.sqline = creature.sqline:sub(1, -3);
 	end
 
@@ -1525,7 +1627,7 @@ function formatSpells(typestr, creature, data, extra)
 			start = start + 1;
 			-- parse spells following this line
 			for i = start, #data do
-				a, b = data[i]:find('%-%-');
+				a, b = data[i]:find('%-%-?');
 				if not a then
 					a, b = data[i]:find('%)%-');
 					if a then
@@ -1534,11 +1636,11 @@ function formatSpells(typestr, creature, data, extra)
 				end
 				if a then
 					-- dlog('a: ' .. a .. ' b: ' .. b); 
-					spellType = data[i]:sub(1, a - 1):lower();
+					spellType = trim(data[i]:sub(1, a - 1):lower());
 					if not spells[casterType][spellType] then
 						spells[casterType][spellType] = {};
 					end
-					line = data[i]:sub(b + 1);
+					line = trim(data[i]:sub(b + 1));
 					tmp = strsplitparen(line, '[,;]');
 					for k, v in pairs(tmp) do
 						-- dlog(v);
@@ -1980,13 +2082,19 @@ end
 	Parse attacks (ranged/melee) simple line extraction with iterative truncating
 ]] --
 function parseAttacks(creature, data)
-	local melee, ranged, attack, fattack, tmp;
+	local melee, ranged, attack, fattack, tmp, meleeline, rangedline;
 
-	tmp = getLineByName('Melee', data, creature.mark_offense, (nil == creature.mark_statistics and #data or creature.mark_statistics));
-	melee = filterTrailingSeparator(trim(getValueByName('Melee', tmp, {})), ',');
+	tmp, meleeline = getLineByName('Melee', data, creature.mark_offense, (nil == creature.mark_statistics and #data or creature.mark_statistics));
+	if tmp and (tmp:find('or$') or tmp:find('and$')) then
+		tmp = tmp .. ' ' .. data[meleeline+1];
+	end
+	melee = replaceOxfordComma(filterTrailingSeparator(trim(getValueByName('Melee', tmp, {})), ','));
 
-	tmp = getLineByName('Ranged', data, creature.mark_offense, (nil == creature.mark_statistics and #data or creature.mark_statistics));
-	ranged = filterTrailingSeparator(trim(getValueByName('Ranged', tmp, {})), ',');
+	tmp, rangedline = getLineByName('Ranged', data, creature.mark_offense, (nil == creature.mark_statistics and #data or creature.mark_statistics));
+	if tmp and (tmp:find('or$') or tmp:find('and$')) then
+		tmp = tmp .. ' ' .. data[rangedline+1];
+	end
+	ranged = replaceOxfordComma(filterTrailingSeparator(trim(getValueByName('Ranged', tmp, {})), ','));
 
 	creLog('parseAttacks (melee)' .. tostring(melee), 1);
 	creLog('parseAttacks (ranged)' .. tostring(ranged), 1);
@@ -2000,6 +2108,14 @@ function parseAttacks(creature, data)
 	elseif (ranged) then
 		creature.fattack = ranged:gsub(', ?', ' and ');
 		creature.attack = dropIter(ranged):gsub(' and ', ' or ');
+	end
+end
+
+function replaceOxfordComma(text)
+	if text then
+		return text:gsub(', or ', ' or '):gsub(', and ', ' and ');
+	else
+		return nil;
 	end
 end
 
