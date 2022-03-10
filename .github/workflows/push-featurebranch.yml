@@ -11,4 +11,4 @@ jobs:
 
     steps:
     - name: test
-      uses: .github/workflows/test.yml@modernize_FG_Unity
+      uses: ./.github/workflows/test.yml
