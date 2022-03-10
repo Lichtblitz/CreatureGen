@@ -1,6 +1,7 @@
 name: Unit Tests
 
-on: [push]
+on:
+  workflow_call:
 
 jobs:
   test:

@@ -1,0 +1,18 @@
+name: Package
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+jobs:
+  package:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@master
+
+    - name: package
+      run: |
+        zip -r CreatureLab-${{inputs.version}}.ext . -x ".\*" -x "cgen/tests/\*"

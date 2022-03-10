@@ -1,0 +1,25 @@
+name: Build and Prerelease
+
+on:
+  push:
+    branches:
+    - main
+
+jobs:
+  Build and Prerelease:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: test
+      uses: .github/workflows/test.yml@main
+    - name: package
+      uses: .github/workflows/package.yml@main
+      with:
+        version: latest
+
+    - uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        prerelease: true
+        files: |
+          *.ext

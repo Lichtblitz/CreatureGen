@@ -1,0 +1,14 @@
+name: Build
+
+on:
+  push:
+    branches-ignore:
+    - main
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: test
+      uses: .github/workflows/test.yml@modernize_FG_Unity

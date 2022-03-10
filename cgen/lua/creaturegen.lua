@@ -296,7 +296,7 @@ function popEffects(creBase, creData)
 			effect.createChild('susceptiblity_modifier', 'number').setValue(0);
 			effect.createChild('susceptiblity_type', 'string').setValue(''); -- no value for IMMUNE; that's Fantasy Grounds, alright
 			effect.createChild('name', 'string').setValue(creature.name);
-			--DB.addHandler(effect.getPath(), "onChildUpdate", onUpdate)
+			-- DB.addHandler(effect.getPath(), "onChildUpdate", onUpdate)
 		end
 	end
 
@@ -313,7 +313,7 @@ function popEffects(creBase, creData)
 			effect.createChild('susceptiblity_modifier', 'number').setValue(resistance.mod);
 			effect.createChild('susceptiblity_type', 'string').setValue('resist');
 			effect.createChild('name', 'string').setValue(creature.name);
-			--DB.addHandler(effect.getPath(), "onChildUpdate", onUpdate)
+			-- DB.addHandler(effect.getPath(), "onChildUpdate", onUpdate)
 		end
 	end
 
@@ -330,7 +330,7 @@ function popEffects(creBase, creData)
 			effect.createChild('susceptiblity_modifier', 'number').setValue(0);
 			effect.createChild('susceptiblity_type', 'string').setValue('vuln');
 			effect.createChild('name', 'string').setValue(creature.name);
-			--DB.addHandler(effect.getPath(), "onChildUpdate", onUpdate)
+			-- DB.addHandler(effect.getPath(), "onChildUpdate", onUpdate)
 		end
 	end
 end
@@ -1177,6 +1177,15 @@ function parsePreliminary(creature, data, ldata)
 
 	-- parse name
 	name = tmp;
+	if name:lower():find('^cr%s%d') ~= nil then
+		if creature.mark_defense > tmp2 + 1 then
+			addWarn('NO Name found with CR in the same line! Name should be followed by a CR ie: "Sea turtle CR 1/8". Assuming that the line after the CR is the name.');
+			name = data[tmp2 + 1];
+		else
+			error('NO Name found! Name must be followed by a CR ie: "Sea turtle CR 1/8"');
+		end
+	end
+
 	tmp2 = tmp
 	creLog('Creature Name Line: ' .. name, 0);
 	if (name == nil) then
@@ -2086,13 +2095,13 @@ function parseAttacks(creature, data)
 
 	tmp, meleeline = getLineByName('Melee', data, creature.mark_offense, (nil == creature.mark_statistics and #data or creature.mark_statistics));
 	if tmp and (tmp:find('or$') or tmp:find('and$')) then
-		tmp = tmp .. ' ' .. data[meleeline+1];
+		tmp = tmp .. ' ' .. data[meleeline + 1];
 	end
 	melee = replaceOxfordComma(filterTrailingSeparator(trim(getValueByName('Melee', tmp, {})), ','));
 
 	tmp, rangedline = getLineByName('Ranged', data, creature.mark_offense, (nil == creature.mark_statistics and #data or creature.mark_statistics));
 	if tmp and (tmp:find('or$') or tmp:find('and$')) then
-		tmp = tmp .. ' ' .. data[rangedline+1];
+		tmp = tmp .. ' ' .. data[rangedline + 1];
 	end
 	ranged = replaceOxfordComma(filterTrailingSeparator(trim(getValueByName('Ranged', tmp, {})), ','));
 
