@@ -10,5 +10,6 @@ runs:
       luaVersion: "5.1"
 
   - name: test
+    shell: bash
     run: |
       lua cgen/tests/creaturegenTest.lua -v
