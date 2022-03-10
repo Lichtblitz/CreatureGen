@@ -1,19 +1,14 @@
 name: Unit Tests
 
-on:
-  workflow_call:
+runs:
+  using: composite
+  steps:
+  - uses: actions/checkout@master
 
-jobs:
-  test:
-    runs-on: ubuntu-latest
+  - uses: leafo/gh-actions-lua@v8.0.0
+    with:
+      luaVersion: "5.1"
 
-    steps:
-    - uses: actions/checkout@master
-
-    - uses: leafo/gh-actions-lua@v8.0.0
-      with:
-        luaVersion: "5.1"
-
-    - name: test
-      run: |
-        lua cgen/tests/creaturegenTest.lua -v
+  - name: test
+    run: |
+      lua cgen/tests/creaturegenTest.lua -v
