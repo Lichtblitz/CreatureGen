@@ -12,4 +12,4 @@ jobs:
     steps:
     - uses: actions/checkout@master
     - name: test
-      uses: ./.github/workflows/test.yml
+      uses: ./.github/workflows/test

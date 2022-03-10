@@ -11,9 +11,9 @@ jobs:
 
     steps:
     - name: test
-      uses: ./.github/workflows/test.yml
+      uses: ./.github/workflows/test
     - name: package
-      uses: ./.github/workflows/package.yml
+      uses: ./.github/workflows/package
       with:
         version: latest
 
