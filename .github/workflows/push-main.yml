@@ -4,7 +4,7 @@ on:
   push:
 
 jobs:
-  Test and Prerelease:
+  Prerelease:
     runs-on: ubuntu-latest
 
     steps:
