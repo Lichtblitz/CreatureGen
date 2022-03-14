@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - uses: actions/checkout@master
     - name: Unit Tests
       uses: ./.github/workflows/test
     - name: Package
