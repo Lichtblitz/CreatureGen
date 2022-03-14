@@ -1,18 +1,16 @@
-name: Build and Prerelease
+name: Test and Prerelease
 
 on:
   push:
-    branches:
-    - main
 
 jobs:
-  Build and Prerelease:
+  Test and Prerelease:
     runs-on: ubuntu-latest
 
     steps:
-    - name: test
+    - name: Unit Tests
       uses: ./.github/workflows/test
-    - name: package
+    - name: Package
       uses: ./.github/workflows/package
       with:
         version: latest

@@ -1,4 +1,4 @@
-name: Build
+name: Test
 
 on:
   push:
@@ -11,5 +11,5 @@ jobs:
 
     steps:
     - uses: actions/checkout@master
-    - name: test
+    - name: Unit Tests
       uses: ./.github/workflows/test
