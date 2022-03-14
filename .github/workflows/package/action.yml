@@ -7,4 +7,4 @@ runs:
   - name: package
     shell: bash
     run: |
-      zip -r CreatureLab-${{inputs.version}}.ext . -x ".\*" -x "cgen/tests/\*"
+      zip -r CreatureLab-${{inputs.version}}.ext . -x ".*" -x "cgen/tests/*"
