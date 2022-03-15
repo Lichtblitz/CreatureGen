@@ -1,0 +1,31 @@
+name: Test and Release
+
+on:
+  push:
+    tags:
+    - "v*"
+
+jobs:
+  Release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@master
+    - name: Get current tag
+      id: tag
+      run: echo "::set-output name=tag::${GITHUB_REF#refs/*/}"
+    - name: Unit Tests
+      uses: ./.github/workflows/test
+    - name: Package
+      uses: ./.github/workflows/package
+      with:
+        version: ${{ steps.tag.outputs.tag }}
+
+    - uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        prerelease: false
+        draft: true
+        automatic_release_tag: ${{ steps.tag.outputs.tag }}
+        files: |
+          *.ext
