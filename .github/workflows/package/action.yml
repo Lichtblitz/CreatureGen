@@ -1,11 +1,9 @@
 name: Package
 
-on:
-  workflow_call:
-    inputs:
-      version:
-        required: true
-        type: string
+inputs:
+  version:
+    required: true
+    type: string
 
 runs:
   using: composite
