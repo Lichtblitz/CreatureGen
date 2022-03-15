@@ -20,7 +20,7 @@ jobs:
     - name: Package
       uses: ./.github/workflows/package
       with:
-        version: latest-${{ steps.date.outputs.timestamp }}
+        version: latest [${{ steps.date.outputs.timestamp }}]
 
     - uses: "marvinpinto/action-automatic-releases@latest"
       with:
