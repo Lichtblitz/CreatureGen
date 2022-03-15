@@ -1,4 +1,4 @@
-name: Test and Prerelease
+name: Test and Release
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
     - "v*"
 
 jobs:
-  Prerelease:
+  Release:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,6 +26,6 @@ jobs:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         prerelease: false
         draft: true
-        automatic_release_tag: latest
+        automatic_release_tag: ${{ steps.tag.outputs.tag }}
         files: |
           *.ext
