@@ -35,5 +35,5 @@
 		<includefile source="cgen/xml/strings/scriptres.xml" />
 	</base>
 
-	<announcement text="CreatureLab v2.0.0 (GPL v3)" font="emotefont" icon="gCGenExtensionIcon" />
+	<announcement text="CreatureLab ${version} (GPL v3)" font="emotefont" icon="gCGenExtensionIcon" />
 </root>

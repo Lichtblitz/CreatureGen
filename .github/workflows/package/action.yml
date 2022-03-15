@@ -7,4 +7,5 @@ runs:
   - name: package
     shell: bash
     run: |
+      sed -i 's/${version}/${{inputs.version}}/g' extension.xml
       zip -r CreatureLab-${{inputs.version}}.ext . -x ".*" -x "cgen/tests/*" -x "images/*"

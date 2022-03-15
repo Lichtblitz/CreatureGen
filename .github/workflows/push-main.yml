@@ -4,6 +4,7 @@ on:
   push:
     branches:
     - main
+    - modernize_FG_Unity
 
 jobs:
   Prerelease:
@@ -11,12 +12,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@master
+    - name: Get current date
+      id: date
+      run: echo "::set-output name=timestamp::$(date +'%Y-%m-%dT%H:%M:%S')"
     - name: Unit Tests
       uses: ./.github/workflows/test
     - name: Package
       uses: ./.github/workflows/package
       with:
-        version: latest
+        version: latest-${{ steps.date.outputs.timestamp }}
 
     - uses: "marvinpinto/action-automatic-releases@latest"
       with:
