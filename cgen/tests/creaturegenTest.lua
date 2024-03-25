@@ -202,7 +202,7 @@ function TestGenesis:testCopyScorpionfolkFromD20PFSRDdotCOM()
 
 end
 
-function TestGenesis:testCopyFromPathbuilder()
+function TestGenesis:testCopyKyarashFromPathbuilder()
 	local actual = genesis(Pathbuilder.kyarash());
 	print(StringUtils.serializeTable(actual))
 
@@ -299,6 +299,130 @@ function TestGenesis:testCopyFromPathbuilder()
 	lu.assertEquals("Base Atk + +3; CMB +4; CMD 19", actual.creature.babcmd)
 	lu.assertEquals("Greater Spell Focus: Evocation; Nimble Moves; Spell Focus: Evocation; Weapon Finesse;", actual.creature.feats)
 	lu.assertEquals("Acrobatics +13; Climb +7; Intimidate +12; Perception +5; Perform (a) +9; Sense Motive +8; Spellcraft +10;", actual.creature.skills)
+	lu.assertNil(actual.creature.lang)
+
+	-- SPECIAL ABILITIES
+
+	lu.assertNil(actual.creature.specialab)
+
+	-- ECOLOGY
+	lu.assertNil(actual.creature.environment)
+	lu.assertNil(actual.creature.organization)
+	lu.assertNil(actual.creature.gearline)
+
+end
+
+function TestGenesis:testCopyHumanBardFromPathbuilder()
+	local actual = genesis(Pathbuilder.humanbard());
+	print(StringUtils.serializeTable(actual))
+
+	lu.assertNotNil(actual)
+	lu.assertNotNil(actual.creature)
+	lu.assertNil(actual.creature.error)
+
+	-- GENERAL
+	lu.assertEquals("Some Human Bard", actual.creature.name)
+	lu.assertEquals(0, actual.creature.cr)
+	lu.assertNil(actual.creature.exp)
+	lu.assertEquals("medium", actual.creature.size)
+	lu.assertEquals("Neutral Medium Human Bard 12;", actual.creature.tpe)
+	lu.assertEquals(1, actual.creature.init)
+	lu.assertEquals("Perception: +14", actual.creature.senses)
+
+	-- DEFENSE
+	lu.assertEquals(22, actual.creature.ac)
+	lu.assertEquals(13, actual.creature.tch)
+	lu.assertEquals(21, actual.creature.ff)
+	lu.assertEquals("22, touch 13, flat-footed 21", actual.creature.acline)
+	lu.assertNil(actual.creature.hd)
+	lu.assertEquals(109, actual.creature.hp)
+	lu.assertEquals(11, actual.creature.fort)
+	lu.assertEquals(13, actual.creature.ref)
+	lu.assertEquals(11, actual.creature.will)
+	lu.assertEquals("Special Qualities Countersong; Distraction; Fascinate; Glorious Epic; Heraldic Expertise; Inspire Greatness; Mockery; Satire; Soothing Performance; Suggestion; Well-Versed; Wide Audience; Versatile Performances: Comedy (Bluff, Intimidate); Dance (Acrobatics, Fly); Expanded Versatility; Expanded Versatility: Sense Motive;", actual.creature.sqline)
+
+	-- OFFENSE
+	lu.assertEquals("30 ft.", actual.creature.speed);
+	lu.assertNil(actual.creature.fattack);
+	lu.assertNil(actual.creature.attack);
+	lu.assertEquals("5ft./5ft.", actual.creature.spacereachline);
+	lu.assertNil(actual.creature.sa);
+
+	-- Spells
+	lu.assertNotNil(actual.creature.spells)
+	local bardSpells = actual.creature.spells['bard spells known']
+	lu.assertNotNil(bardSpells)
+	lu.assertEquals(24, bardSpells.concentration)
+	lu.assertEquals(12, bardSpells.casterlevel)
+	lu.assertEquals(6, TableUtils.tableLength(bardSpells))
+	local levelSpells = bardSpells['1st (7/day)']
+	lu.assertNotNil(levelSpells)
+	lu.assertEquals(6, #levelSpells)
+	lu.assertEquals("alarm", levelSpells[1].propername)
+	lu.assertEquals(19, levelSpells[1].dc)
+	lu.assertEquals("charmperson", levelSpells[2].propername)
+	lu.assertEquals(21, levelSpells[2].dc)
+	lu.assertEquals("disguiseself", levelSpells[3].propername)
+	lu.assertEquals(19, levelSpells[3].dc)
+	lu.assertEquals("earpiercingscream", levelSpells[4].propername)
+	lu.assertEquals(19, levelSpells[4].dc)
+	lu.assertEquals("grease", levelSpells[5].propername)
+	lu.assertEquals(19, levelSpells[5].dc)
+	lu.assertEquals("hideouslaughter", levelSpells[6].propername)
+	lu.assertEquals(21, levelSpells[6].dc)
+
+	levelSpells = bardSpells['2nd (7/day)']
+	lu.assertNotNil(levelSpells)
+	lu.assertEquals(5, #levelSpells)
+	lu.assertEquals("blisteringinvective", levelSpells[1].propername)
+	lu.assertEquals(20, levelSpells[1].dc)
+	lu.assertEquals("distractingcacophony", levelSpells[2].propername)
+	lu.assertEquals(20, levelSpells[2].dc)
+	lu.assertEquals("heroism", levelSpells[3].propername)
+	lu.assertEquals(22, levelSpells[3].dc)
+	lu.assertEquals("invisibility", levelSpells[4].propername)
+	lu.assertEquals(20, levelSpells[4].dc)
+	lu.assertEquals("mirrorimage", levelSpells[5].propername)
+	lu.assertEquals(20, levelSpells[5].dc)
+
+	levelSpells = bardSpells['3rd (6/day)']
+	lu.assertNotNil(levelSpells)
+	lu.assertEquals(6, #levelSpells)
+	lu.assertEquals("confusion", levelSpells[1].propername)
+	lu.assertEquals(23, levelSpells[1].dc)
+	lu.assertEquals("dispelmagic", levelSpells[2].propername)
+	lu.assertEquals(21, levelSpells[2].dc)
+	lu.assertEquals("displacement", levelSpells[3].propername)
+	lu.assertEquals(21, levelSpells[3].dc)
+	lu.assertEquals("fear", levelSpells[4].propername)
+	lu.assertEquals(21, levelSpells[4].dc)
+	lu.assertEquals("haste", levelSpells[5].propername)
+	lu.assertEquals(21, levelSpells[5].dc)
+	lu.assertEquals("purgingfinale", levelSpells[6].propername)
+	lu.assertEquals(21, levelSpells[6].dc)
+
+	levelSpells = bardSpells['4th (5/day)']
+	lu.assertNotNil(levelSpells)
+	lu.assertEquals(4, #levelSpells)
+	lu.assertEquals("dominateperson", levelSpells[1].propername)
+	lu.assertEquals(24, levelSpells[1].dc)
+	lu.assertEquals("holdmonster", levelSpells[2].propername)
+	lu.assertEquals(24, levelSpells[2].dc)
+	lu.assertEquals("invisibilitygreater", levelSpells[3].propername)
+	lu.assertEquals(22, levelSpells[3].dc)
+	lu.assertEquals("wallofblindnessdeafness", levelSpells[4].propername)
+	lu.assertEquals(22, levelSpells[4].dc)
+
+	-- STATISTICS
+	lu.assertEquals(10, actual.creature.str)
+	lu.assertEquals(13, actual.creature.dex)
+	lu.assertEquals(16, actual.creature.con)
+	lu.assertEquals(14, actual.creature.int)
+	lu.assertEquals(8, actual.creature.wis)
+	lu.assertEquals(26, actual.creature.cha)
+	lu.assertEquals("Base Atk + +9; CMB +9; CMD 22", actual.creature.babcmd)
+	lu.assertEquals("Combat Casting; Dazzling Display; Greater Spell Focus: Enchantment; Lingering Performance; Skill Focus: Perform (a); Skill Focus: Perform (b); Spell Focus: Enchantment; Weapon Focus: Melee Touch Attack;", actual.creature.feats)
+	lu.assertEquals("Diplomacy +29; Knowledge (arcana) +6; Knowledge (dungeoneering) +6; Knowledge (engineering) +6; Knowledge (geography) +6; Knowledge (history) +12; Knowledge (local) +23; Knowledge (nature) +6; Knowledge (nobility) +23; Knowledge (planes) +6; Knowledge (religion) +10; Perception +14; Perform (a) +29; Perform (b) +29; Spellcraft +17; Use Magic Device +23;", actual.creature.skills)
 	lu.assertNil(actual.creature.lang)
 
 	-- SPECIAL ABILITIES

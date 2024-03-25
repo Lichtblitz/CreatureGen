@@ -1650,7 +1650,7 @@ function formatSpells(typestr, creature, data, extra)
 						spells[casterType][spellType] = {};
 					end
 					line = trim(data[i]:sub(b + 1));
-					tmp = strsplitparen(line, '[,;]');
+					tmp = strsplitparen(line, ';,');
 					for k, v in pairs(tmp) do
 						-- dlog(v);
 						creLog('formatSpells: Adding Spell: ' .. casterType .. ' ' .. spellType .. ' ' .. v, 3);
@@ -1749,7 +1749,7 @@ function formatSpellStrength(spellName)
 	end
 	local retval = spellName;
 	local retval2;
-	local strengths = {'communal', 'mass', 'lesser', 'greater', 'IX', 'VIII', 'VII', 'VI', 'IV', 'V', 'III', 'II', 'I'};
+	local strengths = {'communal', 'mass', 'lesser', 'greater', 'IX$', 'VIII$', 'VII$', 'VI$', 'IV$', 'V$', 'III$', 'II$', 'I$'};
 
 	for _, v in pairs(strengths) do
 		if spellName:find(v) then
@@ -2648,9 +2648,9 @@ end
 --[[
 	Split string based on a character (paren safe)
 ]] --
-function strsplitparen(inputstr, sep)
-	local a, b, o, line, substr;
-	if sep == nil then
+function strsplitparen(inputstr, separators)
+	local a, b, o, line, substr, sep;
+	if separators == nil then
 		return {};
 	elseif inputstr == nil then
 		return {};
@@ -2658,6 +2658,13 @@ function strsplitparen(inputstr, sep)
 
 	local t = {}
 	local line = inputstr;
+
+	for current in separators:gmatch(".") do
+		sep = "[" .. current .. "]";
+		if line:find(sep) then
+			break; -- ONLY use the first separator found; otherwise we will split up too much, for example "Invisibility, Greater;"
+		end
+	end
 
 	a, b = line:find(sep);
 	-- dlog(line); 
