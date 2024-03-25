@@ -25,6 +25,8 @@
 
 ![Product Name Screen Shot](images/screenshot.png)
 
+![Spells Screen Shot](images/screenshot-spells.png)
+
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 
