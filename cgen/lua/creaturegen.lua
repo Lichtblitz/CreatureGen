@@ -305,8 +305,14 @@ function popEffects(creBase, creData)
 			local effect = effectList.createChild(string.format("id-%05d", index));
 			index = index + 1;
 			effect.createChild('visibility', 'string').setValue('hide');
-			effect.createChild('effect', 'string').setValue(string.format('RESIST: %d %s;', resistance.mod, resistance.type));
-			effect.createChild('effect_description', 'string').setValue(string.format('[RESIST: %d %s;] visibility [hide]', resistance.mod, resistance.type));
+			if resistance.mod ~= nil then
+				effect.createChild('effect', 'string').setValue(string.format('RESIST: %d %s;', resistance.mod, resistance.type));
+				effect.createChild('effect_description', 'string').setValue(string.format('[RESIST: %d %s;] visibility [hide]', resistance.mod, resistance.type));
+			else
+				effect.createChild('effect', 'string').setValue(string.format('RESIST: %s;', resistance.type));
+				effect.createChild('effect_description', 'string').setValue(string.format('[RESIST: %s;] visibility [hide]', resistance.type));
+			end
+
 			effect.createChild('type', 'string').setValue('susceptiblity');
 			effect.createChild('susceptiblity', 'string').setValue(resistance.type);
 			effect.createChild('actiononly', 'number').setValue(0);
